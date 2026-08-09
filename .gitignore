@@ -15,3 +15,17 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# CatBoost
+catboost_info/
+
+# Raw data
+data/raw/
+
+# Generated processed data
+data/processed/
+
+# Trained model artifacts
+models/saved_models/
+
+# Generated experiment results
+results/
