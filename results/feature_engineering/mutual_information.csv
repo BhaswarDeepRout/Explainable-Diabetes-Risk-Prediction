@@ -1,0 +1,16 @@
+Feature,Mutual Information
+HbA1c_level,0.1351837170218646
+blood_glucose_level,0.11545191284855227
+age,0.04270357973883909
+bmi,0.02551977078523704
+hypertension,0.013158360106970024
+gender_Female,0.0123105902224514
+smoking_history_No Info,0.012044310590508145
+heart_disease,0.009232591172354532
+gender_Male,0.008016352608098076
+smoking_history_never,0.005491981679020874
+smoking_history_former,0.00385250795408143
+smoking_history_not current,1.4152534957290186e-05
+gender_Other,0.0
+smoking_history_current,0.0
+smoking_history_ever,0.0

@@ -165,13 +165,21 @@ def plot_correlation_heatmap(correlation_matrix):
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 
-from config import RANDOM_STATE
+from config import RANDOM_STATE, TEST_SIZE
+
+def get_train_split(df):
+    """Helper to isolate training split to avoid target leakage during supervised analysis."""
+    X = df.drop(columns=[TARGET_COLUMN])
+    y = df[TARGET_COLUMN]
+    X_train, _, y_train, _ = train_test_split(X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y)
+    return X_train, y_train
 
 
 def variance_threshold_analysis(df):
     """
-    Identify low-variance features.
+    Identify low-variance features using training data only.
 
     NOTE:
     Features are NOT removed automatically.
@@ -179,15 +187,15 @@ def variance_threshold_analysis(df):
 
     print("\nRunning Variance Threshold Analysis...")
 
-    X = df.drop(columns=[TARGET_COLUMN])
+    X_train, _ = get_train_split(df)
 
     selector = VarianceThreshold(threshold=0.01)
 
-    selector.fit(X)
+    selector.fit(X_train)
 
     variance = pd.DataFrame({
-        "Feature": X.columns,
-        "Variance": X.var().values,
+        "Feature": X_train.columns,
+        "Variance": X_train.var().values,
         "Selected": selector.get_support()
     })
 
@@ -209,23 +217,21 @@ def variance_threshold_analysis(df):
 
 def mutual_information_analysis(df):
     """
-    Compute Mutual Information scores.
+    Compute Mutual Information scores using training data only.
     """
 
     print("\nCalculating Mutual Information...")
 
-    X = df.drop(columns=[TARGET_COLUMN])
-
-    y = df[TARGET_COLUMN]
+    X_train, y_train = get_train_split(df)
 
     mi_scores = mutual_info_classif(
-        X,
-        y,
+        X_train,
+        y_train,
         random_state=RANDOM_STATE
     )
 
     mi = pd.DataFrame({
-        "Feature": X.columns,
+        "Feature": X_train.columns,
         "Mutual Information": mi_scores
     })
 
@@ -294,14 +300,12 @@ def plot_mutual_information(mi):
 
 def random_forest_importance(df):
     """
-    Compute Random Forest feature importance.
+    Compute Random Forest feature importance using training data only.
     """
 
     print("\nTraining Random Forest for Feature Importance...")
 
-    X = df.drop(columns=[TARGET_COLUMN])
-
-    y = df[TARGET_COLUMN]
+    X_train, y_train = get_train_split(df)
 
     rf = RandomForestClassifier(
         n_estimators=200,
@@ -309,10 +313,10 @@ def random_forest_importance(df):
         n_jobs=-1
     )
 
-    rf.fit(X, y)
+    rf.fit(X_train, y_train)
 
     importance = pd.DataFrame({
-        "Feature": X.columns,
+        "Feature": X_train.columns,
         "Importance": rf.feature_importances_
     })
 

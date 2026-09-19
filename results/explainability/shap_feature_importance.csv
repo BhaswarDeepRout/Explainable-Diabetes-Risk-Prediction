@@ -1,0 +1,16 @@
+feature,mean_abs_shap
+HbA1c_level,2.0668566
+blood_glucose_level,1.4706014
+age,0.7055826
+bmi,0.34793845
+smoking_history_No Info,0.17648469
+hypertension,0.09664904
+gender_Male,0.09183909
+heart_disease,0.06991817
+gender_Female,0.026853733
+smoking_history_former,0.016825477
+smoking_history_ever,0.011830553
+smoking_history_never,0.00826784
+smoking_history_not current,0.005780454
+smoking_history_current,0.0032938593
+gender_Other,0.0

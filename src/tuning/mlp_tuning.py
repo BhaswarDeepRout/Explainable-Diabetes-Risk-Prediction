@@ -1,7 +1,7 @@
 """
 mlp_tuning.py
 ------------------
-Hyperparameter tuning for XGBoost using Optuna.
+Hyperparameter tuning for MLP using Optuna.
 """
 
 
@@ -249,7 +249,7 @@ def tune_mlp():
     )
 
     print_metrics(
-        "Tuned MLPBOOST",
+        "Tuned MLP",
         metrics,
     )
     save_results(

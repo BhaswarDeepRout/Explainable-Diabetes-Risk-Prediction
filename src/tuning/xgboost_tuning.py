@@ -56,7 +56,7 @@ from utils import (
 
 
 # ==========================================================
-# CatBoost Tuning
+# XGBoost Tuning
 # ==========================================================
 
 def tune_xgboost():
@@ -269,7 +269,7 @@ def tune_xgboost():
     )
 
     print_metrics(
-        "Tuned XGBOOST",
+        "Tuned XGBoost",
         metrics,
     )
     save_results(

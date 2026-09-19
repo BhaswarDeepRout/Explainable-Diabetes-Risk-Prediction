@@ -1,0 +1,100 @@
+<html><head><style>table, th, td {border: 1px solid black; border-collapse: collapse; padding: 5px;}</style></head><body>
+<h1>Hybrid Deep Learning and Ensemble Learning with Explainable AI for Diabetes Risk Stratification</h1>
+<h2>Abstract</h2>
+<p>Diabetes mellitus is a significant chronic health condition for which risk stratification can facilitate appropriate clinical management. Machine learning and deep learning methodologies offer analytical approaches to identify individuals at elevated risk based on patient health indicators. Challenges such as class imbalance, methodological leakage, and model interpretability can impair the reliability of predictive algorithms. This study proposes and strictly evaluates a hybrid framework incorporating machine learning, ensemble learning, and Explainable Artificial Intelligence (XAI) for diabetes risk stratification. We utilized a dataset of 100,000 raw observations, rigorously deduplicated to 95,964 clean observations. The methodology employs a leakage-free preprocessing pipeline utilizing scikit-learn's ColumnTransformer, followed by a 5-fold Stratified cross-validation out-of-fold (OOF) stacking architecture. The Level-0 models include Tuned XGBoost, Tuned CatBoost, and Scaled MLP, integrated via a Logistic Regression meta-learner. Threshold optimization was conducted exclusively on OOF predictions (optimal F1-score threshold: 0.66) and applied to untouched holdout test data. The final stacking model achieved a test accuracy of 0.9711, precision of 0.9554, recall of 0.7020, and F1-score of 0.8093. SHAP (SHapley Additive exPlanations) analysis identified HbA1c and blood glucose levels as the primary features contributing to model predictions. Finally, we establish that while the stack exhibits strong predictive metrics, the presence of 500 false negatives in independent testing emphasizes its role as a risk-stratification or decision-support tool rather than an autonomous diagnostic system.</p>
+<h2>1. Introduction</h2>
+<p>Diabetes mellitus represents a major public health challenge globally. The capacity to analyze large-scale tabular health data using advanced predictive models offers a pathway for risk stratification. Contemporary predictive architectures frequently deploy decision-tree ensembles, deep learning networks, and stacking mechanisms to capture complex non-linear relationships in patient data. However, the evaluation of these systems must be methodologically robust, guarding against data leakage, class imbalance, and performance exaggeration.</p>
+<p>This study systematically develops and audits a predictive pipeline for diabetes risk stratification. Rather than asserting clinical autonomy, this work contributes a strictly verified methodological approach comparing standalone models (including XGBoost, CatBoost, Multi-Layer Perceptrons, and TabNet) against a Level-1 stacking ensemble. The core contributions of this study are:</p>
+<ol>
+<li>Application of a strictly isolated, leakage-free preprocessing pipeline fitted exclusively on training data.</li>
+<li>Construction of an Out-Of-Fold (OOF) Level-1 stacking ensemble.</li>
+<li>Separation of continuous probability output and discrete classification through OOF-based threshold optimization.</li>
+<li>Interpretation of the final gradient boosting model using global SHAP analysis to quantify predictive contribution.</li>
+</ol>
+<h2>2. Related Work</h2>
+<p>Contemporary studies have highlighted the utility of machine learning in diabetes risk prediction. Elgendy et al. [1] proposed a dual-stage explainable stacking framework using multiple base learners and autoencoder-based reconstruction, leveraging SHAP for explainability on the MIMIC-IV and Pima Indians datasets to demonstrate the viability of stacking. In another study, Aulia [2] focused on the Pima Indians dataset using an optimized Random Forest classifier and SHAP, exploring SMOTE and ADASYN to observe how oversampling impacts recall and overall predictive capability. Rafie et al. [3] successfully leveraged XGBoost and explainable AI to construct robust modeling for Type 2 diabetes prediction, emphasizing the balance between predictive strength and interpretability. Zaferani et al. [4] investigated transparent ensemble architectures combining Random Forests, K-Nearest Neighbors, and Neural Networks. Similarly, Ganguly and Singh [5] established ensemble approaches integrated with XAI for the broader context of diabetes management. These works collectively affirm the value of structured ensemble architectures augmented by interpretability techniques.</p>
+<h2>3. Methodology</h2>
+<h3>A. Dataset and Partitioning</h3>
+<p>The experimental pipeline executes on a dataset (<code>s1.csv</code>) comprising 100,000 raw observations and 9 columns representing clinical and demographic indicators, with the target variable indicating concurrent diabetes status. Dataset provenance, including formal institutional origin, DOI, and temporal collection boundaries, is not documented within the repository artifacts, which constitutes a primary limitation regarding representativeness. To ensure data integrity, exact statistical duplicates and contradictory observations (instances with identical features but opposing target variables) were systematically removed. This cleaning stage omitted 3,854 exact duplicate rows and 182 contradictory observations, yielding a final dataset of 95,964 robust observations.</p>
+<p>The dataset presents a high class imbalance: the final distribution consists of 87,573 non-diabetic observations (91.26%) and 8,391 diabetic observations (8.74%). The dataset was partitioned into training and independent holdout testing subsets using a stratified split (random\_state: 42). The training partition contains 76,771 observations (70,058 non-diabetic, 6,713 diabetic), while the test partition consists of 19,193 observations (17,515 non-diabetic, 1,678 diabetic).</p>
+<h3>B. Feature Dictionary</h3>
+<p>The raw dataset encompasses eight clinical and demographic predictors and one target variable. The variables are: <code>gender</code>, <code>age</code>, <code>hypertension</code>, <code>heart_disease</code>, <code>smoking_history</code>, <code>bmi</code>, <code>HbA1c_level</code>, and <code>blood_glucose_level</code>, predicting the target <code>diabetes</code>. Clinical measurement units (e.g., mg/dL, percentages) are not documented in the repository.</p>
+<h3>C. Leakage-Free Preprocessing</h3>
+<p>To strictly prevent procedural data leakage, all preprocessing operations were encapsulated within a scikit-learn <code>ColumnTransformer</code>. Imputation functions (median for numerical and most-frequent for categorical inputs) and categorical encoding definitions (<code>OneHotEncoder</code>) were fitted exclusively on the 76,771 instances in the training partition. Following the fitting process, the holdout test set was transformed using exclusively training-derived parameters. At no point was the test set utilized to estimate preprocessing parameters, guaranteeing complete segregation between model building and validation data.</p>
+<h3>D. Base Comparative Models</h3>
+<p>To capture heterogeneous predictive signals, we constructed several Level-0 base tabular models:</p>
+<ol>
+<li><b>Tuned XGBoost</b>: A highly optimized gradient-boosting implementation.</li>
+<li><b>Tuned CatBoost</b>: A gradient-boosting algorithm uniquely resistant to overfitting on categorical features.</li>
+<li><b>Scaled MLP</b>: A deep Multi-Layer Perceptron neural network functioning as a baseline deep-learning component within the ensemble.</li>
+</ol>
+<p>Additionally, a standalone optimized <b>Tuned MLP</b> and <b>TabNet</b> (an attentive tabular deep learning architecture) were evaluated as independent comparative benchmarks to measure baseline tabular deep-learning efficacy. Due to differences in architectural integration, TabNet and the independently Tuned MLP were not included in the final meta-learner stack but provide robust deep-learning comparisons.</p>
+<h3>E. Out-of-Fold Stacking Architecture</h3>
+<p>To mitigate individual model bias, a stacking architecture was designed using a 5-fold Stratified cross-validation (<code>StratifiedKFold</code>) approach on the training subset. In this scheme, the three designated Level-0 models (XGBoost, CatBoost, and MLP) generated out-of-fold (OOF) prediction probabilities. These continuous probabilities formed intermediate meta-features. A Logistic Regression meta-learner (Level-1) was subsequently trained exclusively on this probability matrix to generate final aggregate predictions. Holdout test predictions were generated only at the final evaluation checkpoint.</p>
+<h3>F. Threshold Optimization</h3>
+<p>Because default classification thresholds (e.g., 0.50) are frequently suboptimal under severe minority-class conditions (8.74% positive prevalence), a grid search threshold optimization was performed. We evaluated candidate thresholds from 0.10 to 0.90 in increments of 0.01 against the OOF predictions, utilizing the F1-score as the target metric. The optimal threshold derived from OOF training data was identified as 0.66, which yielded an OOF F1-score of 0.8135. This classification threshold (0.66) was subsequently locked and applied identically to the untouched holdout test probabilities.</p>
+<h3>G. Class Imbalance (SMOTE)</h3>
+<p>In addition to native classification, SMOTE (Synthetic Minority Over-sampling Technique) was implemented strictly as a comparative analytic benchmark to measure empirical trade-offs. The benchmark sought to quantify whether synthetic minority insertion could reliably uplift minority recall without severely degrading majority-class precision. SMOTE integration was restricted to experimental runs and was not incorporated into the final optimized stacking pipeline.</p>
+<h2>4. Results and Discussion</h2>
+<h3>A. Hyperparameter Optimization & Final Configurations</h3>
+<p>Hyperparameter tuning was conducted using Optuna, employing the Tree-structured Parzen Estimator (<code>TPESampler</code> with <code>seed=42</code>). The objective function evaluated candidate parameters across 20 trials (<code>n_trials=20</code>), utilizing a 5-fold <code>StratifiedKFold</code> to maximize mean ROC-AUC on the training partition (<code>direction="maximize"</code>). Table I reports the final optimized reproducibility parameters for the evaluated algorithms, extracted directly from verifiable experimental artifacts.</p>
+<p><b>TABLE I. Final Verified Hyperparameter Configurations</b></p>
+<table>
+<tr><th>Model</th><th>Hyperparameters</th></tr>
+<tr><td><b>XGBoost</b></td><td><code>n_estimators</code>: 697, <code>max_depth</code>: 6, <code>learning_rate</code>: 0.04118, <code>subsample</code>: 0.6010, <code>colsample_bytree</code>: 0.7545, <code>gamma</code>: 2.4144, <code>min_child_weight</code>: 4, <code>reg_alpha</code>: 1.9438, <code>reg_lambda</code>: 1.1186</td></tr>
+<tr><td><b>CatBoost</b></td><td><code>iterations</code>: 665, <code>depth</code>: 6, <code>learning_rate</code>: 0.02176, <code>l2_leaf_reg</code>: 10.9945, <code>bagging_temperature</code>: 6.6177, <code>random_strength</code>: 1.4730, <code>border_count</code>: 118</td></tr>
+<tr><td><b>MLP (Standalone Benchmark)</b></td><td><code>hidden_layer_sizes</code>: (128, 64), <code>activation</code>: tanh, <code>alpha</code>: 2.2622e-05, <code>learning_rate_init</code>: 0.00177, <code>batch_size</code>: 64, <code>max_iter</code>: 454</td></tr>
+<tr><td><b>MLP (Level-0 Stacking)</b></td><td><code>hidden_layer_sizes</code>: (128, 64), <code>activation</code>: relu, <code>alpha</code>: 0.0001, <code>learning_rate_init</code>: 0.001, <code>batch_size</code>: 128, <code>max_iter</code>: 500</td></tr>
+<tr><td><b>TabNet (Standalone Benchmark)</b></td><td><code>n_d</code>: 16, <code>n_a</code>: 16, <code>n_steps</code>: 5, <code>gamma</code>: 1.5, <code>optimizer_lr</code>: 2e-3, <code>batch_size</code>: 1024, <code>virtual_batch_size</code>: 128</td></tr>
+<tr><td><b>Logistic Regression (Meta)</b></td><td><code>max_iter</code>: 1000</td></tr>
+</table>
+<h3>B. Comparative Model Performance</h3>
+<p>Table II provides the evaluation metrics for all primary models on the 19,193 untouched holdout observations. Because accuracy is heavily distorted by the 91.26% negative class baseline, Precision, Recall, F1, PR-AUC, and ROC-AUC serve as the primary metrics for evaluating predictive strength.</p>
+<p><b>TABLE II. Final Test Set Metrics</b></p>
+<table>
+<tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th><th>PR-AUC</th></tr>
+<tr><td>Tuned XGBoost</td><td>0.971604</td><td>0.975651</td><td>0.692491</td><td>0.810038</td><td>0.977753</td><td>0.885530</td></tr>
+<tr><td>Tuned CatBoost</td><td>0.9716</td><td>0.9773</td><td>0.6913</td><td>0.8098</td><td>0.9777</td><td>0.8848</td></tr>
+<tr><td>Tuned MLP</td><td>0.9713</td><td>0.9896</td><td>0.6794</td><td>0.8057</td><td>0.974979</td><td>0.877987</td></tr>
+<tr><td>TabNet</td><td>0.9710</td><td>0.9965</td><td>0.6733</td><td>0.8037</td><td>0.974507</td><td>0.873419</td></tr>
+<tr><td>Final Stacking</td><td>0.9711</td><td>0.9554</td><td>0.7020</td><td>0.8093</td><td>0.9775</td><td>(Not documented)</td></tr>
+</table>
+<p>The comparative data reveals direct numerical trade-offs. Standalone deep-learning structures like TabNet returned highly conservative precision (0.9965) but compromised on sensitivity/recall (0.6733). The Final Stacking model demonstrated the highest measured recall among optimized systems (0.7020) while returning an F1-score of 0.8093. Tuned XGBoost provided the highest numerical F1-score (0.810038) by balancing precision (0.975651) with strong recall (0.692491). No single model structurally dominates across all possible objective functions.</p>
+<h3>C. Comparative SMOTE Performance</h3>
+<p>To quantify whether synthetic minority insertion could reliably uplift minority recall without severely degrading majority-class precision, SMOTE was applied in standalone experimental runs. The comparative F1-scores were 0.8066 for Tuned CatBoost with SMOTE, 0.8043 for Tuned XGBoost with SMOTE, and 0.7211 for the MLP with SMOTE. These SMOTE-augmented architectures were strictly evaluated as analytical benchmarks and were not incorporated into the final optimized stacking pipeline.</p>
+<h3>D. Confusion Matrices Analysis</h3>
+<p>Model decision matrices clearly illustrate the applied boundaries of the threshold predictions over the 19,193 test cases:</p>
+<ul>
+<li><b>Tuned XGBoost</b>: Produced 17,486 True Negatives (TN), 29 False Positives (FP), 516 False Negatives (FN), and 1,162 True Positives (TP).</li>
+<li><b>Final Stacking (Threshold: 0.66)</b>: Produced 17,460 True Negatives (TN), 55 False Positives (FP), 500 False Negatives (FN), and 1,178 True Positives (TP).</li>
+</ul>
+<p>Both pipelines successfully identified the vast majority of non-diabetic and diabetic patients. However, the exact occurrence of 500 to 516 false negatives dictates that these pipelines possess blind spots and thereby cannot safely operate as fully autonomous diagnostic determinants in a live clinical setting.</p>
+<h3>E. Explainable AI (SHAP)</h3>
+<p>To quantify feature predictive contribution, SHAP values were computed for the test instances using <code>shap.TreeExplainer</code> over the optimized XGBoost architecture. Results signify predictive association, not physiological causality. Based on global importance rankings, the top primary predictive drivers are:</p>
+<ol>
+<li><b>HbA1c_level</b>: Displays the most significant predictive association (mean absolute SHAP = 2.0669).</li>
+<li><b>blood_glucose_level</b>: Registers as the secondary influential marker (mean absolute SHAP = 1.4706).</li>
+</ol>
+<p>Remaining features provided distinct but markedly lower aggregate predictive contributions, specifically age (mean absolute SHAP = 0.7056) and BMI (mean absolute SHAP = 0.3479).</p>
+<h2>5. Limitations and Future Work</h2>
+<p>While this study establishes a strictly verified testing protocol and reports highly optimized test statistics, significant limitations dictate cautious interpretation:</p>
+<ol>
+<li><b>Unknown Dataset Provenance</b>: The dataset lacks verifiable institutional origin, temporal collection boundaries, or DOI documentation. </li>
+<li><b>Cross-Sectional Constraints</b>: The dataset captures concurrent metrics lacking longitudinal timestamps. The models stratify concurrent risk but cannot establish temporal forecasting or future prediction.</li>
+<li><b>Representativeness</b>: Unverifiable demography limits generalizing conclusions to defined clinical populations. </li>
+<li><b>Absence of External Validation</b>: The model was not validated across diverse external geographic cohorts.</li>
+<li><b>Absence of Temporal Validation</b>: Predictive stability across varying longitudinal time horizons was not confirmed.</li>
+<li><b>Calibration Analysis</b>: Pure probabilistic calibration (e.g., Brier score) was not rigorously quantified outside of rank-based ROC metrics.</li>
+<li><b>Statistical Uncertainty Estimates</b>: The exported evaluation metrics represent singular point estimates. No confidence intervals or explicit variability (e.g., fold standard deviations) were reported.</li>
+<li><b>Threshold Prevalence Dependence</b>: The optimal threshold of 0.66 is strictly coupled to the 8.74% disease prevalence rate; significant demographic occurrences would necessitate empirical recalibration.</li>
+<li><b>Correlational Explainability</b>: SHAP values strictly measure internal model behavior as an associational artifact, rendering them invalid for establishing physiological causality.</li>
+</ol>
+<h2>6. Conclusion</h2>
+<p>This study developed an extensively verified, leakage-free pipeline integrating ensemble machine learning and SHAP interpretable analysis for diabetes risk stratification. Comparative analyses spanning gradient boosting, neural topologies (MLP, TabNet), and Out-Of-Fold stacking successfully identified high-risk populations, constrained by empirical threshold optimization (OOF F1: 0.8135). The Final Stacking classifier achieved an accuracy of 0.9711 and an F1-score of 0.8093 via strict compartmentalization of preprocessing logic. The analysis confirmed the dominant predictive contribution of HbA1c and blood glucose features without requiring biologically causal hypotheses. Recognizing the persistence of minority-class false negatives (500 cases), these systems represent robust risk-stratification aids rather than autonomous diagnostic engines.</p>
+<h2>References</h2>
+<p>[1] A. Elgendy et al., "Dual-stage explainable ensemble learning model for diabetes diagnosis," <i>Expert Systems with Applications</i>, vol. 274, p. 126899, 2025, doi: 10.1016/j.eswa.2025.126899.</p>
+<p>[2] H. Aulia, A. Wibowo, and Sutrisno, "Explaining Diabetes Prediction Under Oversampling Strategies: A SHAP Based Comparative Study of SMOTE and ADASYN," <i>2025 8th International Conference on Informatics and Computational Sciences (ICICoS)</i>, 2025, pp. 1-6, doi: 10.1109/icicos68590.2025.11329981.</p>
+<p>[3] Z. Rafie, M. S. Talab, B. E. Z. Koor, et al., "Leveraging XGBoost and explainable AI for accurate prediction of type 2 diabetes," <i>BMC Public Health</i>, vol. 25, p. 3688, 2025, doi: 10.1186/s12889-025-24953-w.</p>
+<p>[4] N. Zaferani, M. R. Afrash, and K. Moulaei, "Predicting and classifying type 2 diabetes using a transparent ensemble model combining random forest, k-nearest neighbor, and neural networks," <i>Scientific Reports</i>, vol. 16, p. 1892, 2026, doi: 10.1038/s41598-025-31562-5.</p>
+<p>[5] R. Ganguly and D. Singh, "Explainable Artificial Intelligence (XAI) for the Prediction of Diabetes Management: An Ensemble Approach," <i>International Journal of Advanced Computer Science and Applications</i>, vol. 14, no. 7, 2023, doi: 10.14569/IJACSA.2023.0140717.</p>
+</body></html>

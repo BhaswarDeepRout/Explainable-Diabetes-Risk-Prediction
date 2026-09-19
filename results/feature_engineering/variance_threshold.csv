@@ -1,0 +1,16 @@
+Feature,Variance,Selected
+age,502.13329798094117,True
+hypertension,0.07123314406493321,True
+heart_disease,0.03876177870838351,True
+bmi,45.74208228643506,True
+HbA1c_level,1.1552744332416358,True
+blood_glucose_level,1676.3697185986427,True
+gender_Female,0.2427826679830328,True
+gender_Male,0.24274720508925238,True
+gender_Other,0.00020837130920295233,False
+smoking_history_No Info,0.2248464095110406,True
+smoking_history_current,0.08663757948565524,True
+smoking_history_ever,0.04039897913736222,True
+smoking_history_former,0.08706901200309719,True
+smoking_history_never,0.22985002381360944,True
+smoking_history_not current,0.06183825271460988,True

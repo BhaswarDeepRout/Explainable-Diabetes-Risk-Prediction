@@ -1,0 +1,5 @@
+{
+    "best_threshold": 0.6599999999999997,
+    "selection_metric": "f1",
+    "selection_data": "OOF training predictions"
+}

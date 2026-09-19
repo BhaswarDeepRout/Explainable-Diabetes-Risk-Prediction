@@ -1,0 +1,24 @@
+============================================================
+FEATURE ENGINEERING REPORT
+============================================================
+
+Total Features : 15
+
+Feature Summary
+------------------------------------------------------------
+                    Feature    Variance  Selected  Mutual Information   Importance       VIF Recommendation
+                        age  502.133298      True            0.042704 1.058748e-01  5.123318           KEEP
+               hypertension    0.071233      True            0.013158 1.431513e-02       NaN           KEEP
+              heart_disease    0.038762      True            0.009233 1.038042e-02       NaN           KEEP
+                        bmi   45.742082      True            0.025520 1.247583e-01 15.152994           KEEP
+                HbA1c_level    1.155274      True            0.135184 3.976400e-01 16.575984           KEEP
+        blood_glucose_level 1676.369719      True            0.115452 3.248374e-01 11.493987           KEEP
+              gender_Female    0.242783      True            0.012311 2.265824e-03       NaN           KEEP
+                gender_Male    0.242747      True            0.008016 2.342928e-03       NaN           KEEP
+               gender_Other    0.000208     False            0.000000 9.044413e-07       NaN           KEEP
+    smoking_history_No Info    0.224846      True            0.012044 4.097954e-03       NaN           KEEP
+    smoking_history_current    0.086638      True            0.000000 2.447563e-03       NaN           KEEP
+       smoking_history_ever    0.040399      True            0.000000 1.979747e-03       NaN           KEEP
+     smoking_history_former    0.087069      True            0.003853 3.642633e-03       NaN           KEEP
+      smoking_history_never    0.229850      True            0.005492 3.211022e-03       NaN           KEEP
+smoking_history_not current    0.061838      True            0.000014 2.205380e-03       NaN           KEEP

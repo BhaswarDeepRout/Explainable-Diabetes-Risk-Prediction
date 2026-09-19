@@ -7,19 +7,23 @@ Pipeline:
 1. Load raw dataset
 2. Inspect dataset
 3. Remove duplicates
-4. Handle missing values
+4. Handle missing values & One-Hot Encode (fitted on train split only)
 5. Validate data types
-6. One-Hot Encode categorical variables
-7. Data quality audit
-8. Save cleaned dataset
+6. Data quality audit
+7. Save cleaned dataset
 """
 
 from pathlib import Path
 
 import pandas as pd
+from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
 
-from config import RAW_DATA_DIR, PROCESSED_DATA_DIR
+# Import project settings for train-test split consistency
+from config import RAW_DATA_DIR, PROCESSED_DATA_DIR, TARGET_COLUMN, RANDOM_STATE, TEST_SIZE
 
 
 # ==========================================================
@@ -28,7 +32,6 @@ from config import RAW_DATA_DIR, PROCESSED_DATA_DIR
 
 INPUT_FILE = RAW_DATA_DIR / "s1.csv"
 OUTPUT_FILE = PROCESSED_DATA_DIR / "diabetes_clean.csv"
-TARGET_COLUMN = "diabetes"
 
 
 # ==========================================================
@@ -176,41 +179,73 @@ def remove_conflicting_duplicates(
 
 
 # ==========================================================
-# Handle Missing Values
+# Handle Missing Values & Encode Categorical Variables
 # ==========================================================
 
-def handle_missing_values(df: pd.DataFrame) -> pd.DataFrame:
-    """Impute missing values."""
+def process_features_leakage_free(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Impute missing values and encode categorical variables,
+    fitting transformers strictly on the training partition
+    to prevent procedural data leakage.
+    """
+    print("\nProcessing Features (Leakage-Free)...")
 
-    print("\nHandling Missing Values...")
+    # 1. Determine train indices matching the exact split in data_utils.py
+    train_idx, _ = train_test_split(
+        df.index,
+        test_size=TEST_SIZE,
+        random_state=RANDOM_STATE,
+        stratify=df[TARGET_COLUMN]
+    )
 
-    numerical_columns = df.select_dtypes(
-        include=["int64", "float64"]
-    ).columns
+    numerical_columns = df.drop(columns=[TARGET_COLUMN]).select_dtypes(include=["int64", "float64"]).columns.tolist()
+    categorical_columns = df.drop(columns=[TARGET_COLUMN]).select_dtypes(include=["object", "category"]).columns.tolist()
 
-    categorical_columns = df.select_dtypes(
-        include=["object", "category"]
-    ).columns
+    # Define pipelines
+    num_pipeline = Pipeline([
+        ('imputer', SimpleImputer(strategy="median"))
+    ])
 
-    if len(numerical_columns) > 0:
-        numeric_imputer = SimpleImputer(strategy="median")
+    cat_pipeline = Pipeline([
+        ('imputer', SimpleImputer(strategy="most_frequent")),
+        ('encoder', OneHotEncoder(drop=None, sparse_output=False, handle_unknown="ignore"))
+    ])
 
-        df[numerical_columns] = numeric_imputer.fit_transform(
-            df[numerical_columns]
-        )
+    # Assemble ColumnTransformer
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', num_pipeline, numerical_columns),
+            ('cat', cat_pipeline, categorical_columns)
+        ],
+        remainder='passthrough'
+    )
 
-    if len(categorical_columns) > 0:
-        categorical_imputer = SimpleImputer(
-            strategy="most_frequent"
-        )
+    # 2. Fit ONLY on the training partition
+    preprocessor.fit(df.loc[train_idx])
 
-        df[categorical_columns] = categorical_imputer.fit_transform(
-            df[categorical_columns]
-        )
+    # 3. Transform the entire dataset
+    transformed = preprocessor.transform(df)
 
-    print("Missing values handled.")
+    # 4. Extract feature names to match get_dummies exactly
+    cat_encoder = preprocessor.named_transformers_['cat'].named_steps['encoder']
+    cat_feature_names = cat_encoder.get_feature_names_out(categorical_columns)
 
-    return df
+    # Remainder is the TARGET_COLUMN
+    feature_names = numerical_columns + list(cat_feature_names) + [TARGET_COLUMN]
+
+    df_transformed = pd.DataFrame(transformed, columns=feature_names, index=df.index)
+
+    # 5. Restore original column order (mimic get_dummies)
+    # get_dummies keeps all non-categorical cols first (in their original relative order),
+    # then appends categorical ones at the end.
+    original_non_cat = [c for c in df.columns if c not in categorical_columns]
+    desired_order = original_non_cat + list(cat_feature_names)
+
+    # Reorder columns to exactly match how get_dummies did it
+    df_transformed = df_transformed[desired_order]
+
+    print("Missing values imputed and categorical variables encoded.")
+    return df_transformed
 
 
 # ==========================================================
@@ -231,34 +266,10 @@ def validate_dtypes(df: pd.DataFrame) -> pd.DataFrame:
     df["heart_disease"] = df["heart_disease"].astype(int)
     df[TARGET_COLUMN] = df[TARGET_COLUMN].astype(int)
 
-    return df
-
-
-# ==========================================================
-# Encode Categorical Variables
-# ==========================================================
-
-def encode_categorical(df: pd.DataFrame) -> pd.DataFrame:
-    """One-Hot Encode categorical variables."""
-
-    print("\nEncoding categorical variables...")
-
-    categorical_columns = df.select_dtypes(
-        include=["object", "category"]
-    ).columns.tolist()
-
-    if len(categorical_columns) == 0:
-        print("No categorical variables found.")
-        return df
-
-    df = pd.get_dummies(
-        df,
-        columns=categorical_columns,
-        drop_first=False,
-        dtype=int,
-    )
-
-    print("Encoding completed.")
+    # Cast encoded columns to int
+    cat_cols = [c for c in df.columns if c.startswith('gender_') or c.startswith('smoking_history_')]
+    for col in cat_cols:
+        df[col] = df[col].astype(int)
 
     return df
 
@@ -328,11 +339,9 @@ def main():
         dataset
     )
 
-    dataset = handle_missing_values(dataset)
+    dataset = process_features_leakage_free(dataset)
 
     dataset = validate_dtypes(dataset)
-
-    dataset = encode_categorical(dataset)
 
     audit_dataset(dataset)
 

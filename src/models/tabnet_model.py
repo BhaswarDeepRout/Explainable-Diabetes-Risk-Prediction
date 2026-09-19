@@ -14,6 +14,12 @@ from config import (
     RESULTS_DIR,
 )
 
+# Inject deterministic seeding for PyTorch backend
+torch.manual_seed(RANDOM_STATE)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(RANDOM_STATE)
+np.random.seed(RANDOM_STATE)
+
 from data_utils import (
     load_dataset,
     prepare_data,

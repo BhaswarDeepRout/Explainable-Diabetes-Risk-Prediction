@@ -1,0 +1,11 @@
+Item,Value
+Final dataset rows,95964.0
+Final dataset columns,16.0
+Training samples,76771.0
+Testing samples,19193.0
+Missing values,0.0
+Duplicate rows,0.0
+Positive samples,8391.0
+Negative samples,87573.0
+Positive class rate,0.0874
+Train/test feature overlap,0.0
