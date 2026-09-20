@@ -432,26 +432,7 @@ The explainability analysis is performed on the final tuned XGBoost model. Two l
 
 The global SHAP analysis calculates the mean absolute SHAP value for each feature. This provides a ranking of the features according to their average contribution to the model's predictions.
 
-\begin{table}[t]
-\caption{Global SHAP Feature Importance}
-\centering
-\begin{tabular}{lc}
-\toprule
-Feature & Mean Absolute SHAP \\
-\midrule
-HbA1c level & 2.066857 \\
-Blood glucose level & 1.470601 \\
-Age & 0.705583 \\
-BMI & 0.347938 \\
-Smoking history -- No Info & 0.176485 \\
-Hypertension & 0.096649 \\
-Gender -- Male & 0.091839 \\
-Heart disease & 0.069918 \\
-Gender -- Female & 0.026854 \\
-Smoking history -- former & 0.016825 \\
-\bottomrule
-\end{tabular}
-\end{table}
+
 
 The results indicate that HbA1c level and blood glucose level are the dominant contributors to the predictions of the selected model. Age and BMI also provide substantial contributions, although their average effects are smaller than those of the two glucose-related variables.
 
