@@ -456,7 +456,23 @@ The results indicate that the differences between the strongest models are relat
 
 Hyperparameter optimization substantially changed the operating point of XGBoost. Baseline XGBoost obtained F1-score 0.637224, precision 0.492363, and recall 0.902861, whereas tuned XGBoost obtained F1-score 0.810038, precision 0.975651, and recall 0.692491.
 
+
+\begin{table}[htbp]
+\caption{Final Verified Hyperparameter Configurations}
+\centering
+\begin{tabular}{p{3cm} p{5cm}}
+\toprule
+\textbf{Model} & \textbf{Hyperparameters} \
+\midrule
+\textbf{XGBoost Tuned} & n\_estimators: 697, max\_depth: 6, learning\_rate: 0.041, subsample: 0.601, colsample\_bytree: 0.754, gamma: 2.414 \
+\textbf{CatBoost Tuned} & iterations: 665, depth: 6, learning\_rate: 0.022, l2\_leaf\_reg: 10.995, bagging\_temperature: 6.618 \
+\textbf{MLP Tuned} & hidden\_layer\_sizes: (128,), activation: relu, alpha: 0.004, learning\_rate\_init: 0.006, batch\_size: 128, max\_iter: 406 \
+\bottomrule
+\end{tabular}
+\end{table}
+
 Thus, tuning reduced false-positive behavior and produced a more balanced precision-recall trade-off, illustrating why accuracy or recall alone is insufficient for this imbalanced problem.
+
 
 \subsection{Comparison of XGBoost and CatBoost}
 
