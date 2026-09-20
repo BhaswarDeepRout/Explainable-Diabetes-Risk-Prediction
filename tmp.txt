@@ -1,0 +1,165 @@
+[I 2026-09-20 10:23:06,543] A new study created in memory with name: no-name-7c48a27b-93bc-46c4-8fb9-4cae1fd63e95
+
+============================================================
+
+Loading Engineered Dataset
+
+============================================================
+
+Dataset Shape : (95964, 16)
+
+
+
+Splitting Dataset...
+
+Training Samples : 76771
+
+Testing Samples  : 19193
+
+
+
+Scaling Continuous Features...
+
+Scaler saved.
+
+
+  0%|          | 0/15 [00:00<?, ?it/s]C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64, 32) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128, 64) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (256, 128) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+
+                                      
+
+  0%|          | 0/15 [00:10<?, ?it/s]
+Best trial: 0. Best value: 0.978427:   0%|          | 0/15 [00:10<?, ?it/s]
+Best trial: 0. Best value: 0.978427:   7%|6         | 1/15 [00:10<02:32, 10.86s/it]C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64, 32) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128, 64) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (256, 128) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\AppData\Roaming\Python\Python314\site-packages\sklearn\neural_network\_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (557) reached and the optimization hasn't converged yet.
+
+  warnings.warn(
+
+C:\Users\bhasw\AppData\Roaming\Python\Python314\site-packages\sklearn\neural_network\_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (557) reached and the optimization hasn't converged yet.
+
+  warnings.warn(
+
+C:\Users\bhasw\AppData\Roaming\Python\Python314\site-packages\sklearn\neural_network\_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (557) reached and the optimization hasn't converged yet.
+
+  warnings.warn(
+
+C:\Users\bhasw\AppData\Roaming\Python\Python314\site-packages\sklearn\neural_network\_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (557) reached and the optimization hasn't converged yet.
+
+  warnings.warn(
+
+C:\Users\bhasw\AppData\Roaming\Python\Python314\site-packages\sklearn\neural_network\_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (557) reached and the optimization hasn't converged yet.
+
+  warnings.warn(
+
+
+                                                                                   
+
+Best trial: 0. Best value: 0.978427:   7%|6         | 1/15 [03:59<02:32, 10.86s/it]
+Best trial: 0. Best value: 0.978427:   7%|6         | 1/15 [03:59<02:32, 10.86s/it]
+Best trial: 0. Best value: 0.978427:  13%|#3        | 2/15 [03:59<30:05, 138.89s/it]C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64, 32) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128, 64) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (256, 128) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+
+                                                                                    
+
+Best trial: 0. Best value: 0.978427:  13%|#3        | 2/15 [04:47<30:05, 138.89s/it]
+Best trial: 0. Best value: 0.978427:  13%|#3        | 2/15 [04:47<30:05, 138.89s/it]
+Best trial: 0. Best value: 0.978427:  20%|##        | 3/15 [04:47<19:26, 97.25s/it] C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64, 32) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128, 64) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (256, 128) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+
+                                                                                   
+
+Best trial: 0. Best value: 0.978427:  20%|##        | 3/15 [05:02<19:26, 97.25s/it]
+Best trial: 0. Best value: 0.978427:  20%|##        | 3/15 [05:02<19:26, 97.25s/it]
+Best trial: 0. Best value: 0.978427:  27%|##6       | 4/15 [05:02<11:53, 64.87s/it]C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128,) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (64, 32) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (128, 64) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+
+C:\Users\bhasw\OneDrive\Documents\VSCODE\Explainable-Diabetes-Risk-Prediction\src\tuning\mlp_tuning.py:93: UserWarning: Choices for a categorical distribution should be a tuple of None, bool, int, float and str for persistent storage but contains (256, 128) which is of type tuple.
+
+  "hidden_layer_sizes": trial.suggest_categorical(
+

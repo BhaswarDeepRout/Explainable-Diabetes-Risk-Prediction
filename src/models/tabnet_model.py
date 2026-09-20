@@ -25,6 +25,7 @@ from data_utils import (
     prepare_data,
     split_dataset,
     scale_features,
+    CONTINUOUS_FEATURES,
 )
 
 from utils import (
@@ -65,7 +66,33 @@ print("=" * 60)
 
 dataset = load_dataset()
 
+# ==========================================================
+# Reverse One-Hot Encoding for TabNet Embeddings
+# ==========================================================
+print("\nReversing one-hot encoding for categorical embeddings...")
+gender_cols = [c for c in dataset.columns if c.startswith("gender_")]
+if gender_cols:
+    dataset["gender"] = np.argmax(dataset[gender_cols].values, axis=1)
+    dataset = dataset.drop(columns=gender_cols)
+
+smoking_cols = [c for c in dataset.columns if c.startswith("smoking_history_")]
+if smoking_cols:
+    dataset["smoking_history"] = np.argmax(dataset[smoking_cols].values, axis=1)
+    dataset = dataset.drop(columns=smoking_cols)
+
 X, y = prepare_data(dataset)
+
+remainder_cols = [c for c in X.columns if c not in CONTINUOUS_FEATURES]
+transformed_cols = CONTINUOUS_FEATURES + remainder_cols
+
+cat_cols = ["hypertension", "heart_disease", "gender", "smoking_history"]
+cat_cols = [c for c in cat_cols if c in transformed_cols]
+
+cat_idxs = [transformed_cols.index(c) for c in cat_cols]
+cat_dims = [dataset[c].nunique() for c in cat_cols]
+
+print(f"Categorical Indices: {cat_idxs}")
+print(f"Categorical Dimensions: {cat_dims}")
 
 X_train, X_test, y_train, y_test = split_dataset(
     X,
@@ -161,6 +188,12 @@ print("Training TabNet")
 print("=" * 60)
 
 model = TabNetClassifier(
+
+    cat_idxs=cat_idxs,
+
+    cat_dims=cat_dims,
+
+    cat_emb_dim=1,
 
     n_d=16,
 

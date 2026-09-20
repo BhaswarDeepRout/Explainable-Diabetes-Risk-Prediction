@@ -40,11 +40,11 @@ def build_mlp():
 
         learning_rate_init=0.001,
 
-        max_iter=200,
+        max_iter=500,
 
         random_state=RANDOM_STATE,
 
-        early_stopping=True,
+        early_stopping=False,
 
         validation_fraction=0.1,
     )

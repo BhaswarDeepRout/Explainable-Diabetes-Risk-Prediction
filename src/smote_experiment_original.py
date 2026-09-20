@@ -1,15 +1,14 @@
 """
-SMOTENC experiments for diabetes prediction.
+SMOTE experiments for diabetes prediction.
 """
 
-from imblearn.over_sampling import SMOTENC
+from imblearn.over_sampling import SMOTE
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import StandardScaler
 
 from config import RANDOM_STATE
 from config import RESULTS_DIR
 
-SMOTENC_RESULTS_FILE = (
+SMOTE_RESULTS_FILE = (
     RESULTS_DIR /
     "comparison" /
     "smote_results.csv"
@@ -19,7 +18,6 @@ from data_utils import (
     load_dataset,
     prepare_data,
     split_dataset,
-    CONTINUOUS_FEATURES,
 )
 from catboost import CatBoostClassifier
 
@@ -62,47 +60,25 @@ print(y_train.value_counts())
 
 
 # ==========================================================
-# Scale Data BEFORE SMOTENC
+# Apply SMOTE ONLY to Training Data
 # ==========================================================
 
-print("\n" + "=" * 60)
-print("Scaling Continuous Features BEFORE SMOTENC")
-print("=" * 60)
-
-scaler = StandardScaler()
-X_train_scaled = X_train.copy()
-X_test_scaled = X_test.copy()
-
-X_train_scaled[CONTINUOUS_FEATURES] = scaler.fit_transform(X_train[CONTINUOUS_FEATURES])
-X_test_scaled[CONTINUOUS_FEATURES] = scaler.transform(X_test[CONTINUOUS_FEATURES])
-
-
-# ==========================================================
-# Apply SMOTENC ONLY to Training Data
-# ==========================================================
-
-categorical_indices = [
-    i for i, col in enumerate(X_train.columns)
-    if col not in CONTINUOUS_FEATURES
-]
-
-smote = SMOTENC(
-    categorical_features=categorical_indices,
+smote = SMOTE(
     random_state=RANDOM_STATE,
 )
 
 X_train_smote, y_train_smote = smote.fit_resample(
-    X_train_scaled,
+    X_train,
     y_train,
 )
 
 
 # ==========================================================
-# Check SMOTENC Class Distribution
+# Check SMOTE Class Distribution
 # ==========================================================
 
 print("\n" + "=" * 60)
-print("SMOTENC Training Class Distribution")
+print("SMOTE Training Class Distribution")
 print("=" * 60)
 
 print(y_train_smote.value_counts())
@@ -111,17 +87,17 @@ print(y_train_smote.value_counts())
 print("\nOriginal Training Shape:")
 print(X_train.shape)
 
-print("\nSMOTENC Training Shape:")
+print("\nSMOTE Training Shape:")
 print(X_train_smote.shape)
 
 print("\nTest Shape:")
 print(X_test.shape)
 # ==========================================================
-# Train CatBoost with SMOTENC
+# Train CatBoost with SMOTE
 # ==========================================================
 
 print("\n" + "=" * 60)
-print("Training CatBoost with SMOTENC")
+print("Training CatBoost with SMOTE")
 print("=" * 60)
 
 model = CatBoostClassifier(
@@ -143,27 +119,27 @@ model.fit(
     y_train_smote,
 )
 # ==========================================================
-# Evaluate SMOTENC CatBoost
+# Evaluate SMOTE CatBoost
 # ==========================================================
 
 y_pred, y_prob, metrics = evaluate_classifier(
     model,
-    X_test_scaled,
+    X_test,
     y_test,
 )
 
 print_metrics(
-    "CatBoost + SMOTENC",
+    "CatBoost + SMOTE",
     metrics,
 )
 save_results(
-    "CatBoost + SMOTENC",
+    "CatBoost + SMOTE",
     metrics,
-    SMOTENC_RESULTS_FILE,
+    SMOTE_RESULTS_FILE,
 )
 
 # ==========================================================
-# Save SMOTENC CatBoost
+# Save SMOTE CatBoost
 # ==========================================================
 
 save_model(
@@ -172,13 +148,13 @@ save_model(
 )
 
 # ==========================================================
-# Train XGBoost with SMOTENC
+# Train XGBoost with SMOTE
 # ==========================================================
 
 from xgboost import XGBClassifier
 
 print("\n" + "=" * 60)
-print("Training XGBoost with SMOTENC")
+print("Training XGBoost with SMOTE")
 print("=" * 60)
 
 xgb_model = XGBClassifier(
@@ -205,22 +181,22 @@ xgb_model.fit(
 )
 
 # ==========================================================
-# Evaluate SMOTENC XGBoost
+# Evaluate SMOTE XGBoost
 # ==========================================================
 
 y_pred, y_prob, metrics = evaluate_classifier(
     xgb_model,
-    X_test_scaled,
+    X_test,
     y_test,
 )
 
 print_metrics(
-    "XGBoost + SMOTENC",
+    "XGBoost + SMOTE",
     metrics,
 )
 
 # ==========================================================
-# Save SMOTENC XGBoost
+# Save SMOTE XGBoost
 # ==========================================================
 
 save_model(
@@ -228,18 +204,30 @@ save_model(
     TUNED_MODELS_DIR / "xgboost_smote.json",
 )
 save_results(
-    "XGBoost + SMOTENC",
+    "XGBoost + SMOTE",
     metrics,
-    SMOTENC_RESULTS_FILE,
+    SMOTE_RESULTS_FILE,
+)
+
+# ==========================================================
+# Scale Data for MLP
+# ==========================================================
+
+from data_utils import scale_features
+
+X_train_smote_scaled, X_test_scaled, scaler = scale_features(
+    X_train_smote,
+    X_test,
+    save_scaler=False,
 )
 
 
 # ==========================================================
-# Train MLP with SMOTENC
+# Train MLP with SMOTE
 # ==========================================================
 
 print("\n" + "=" * 60)
-print("Training MLP with SMOTENC")
+print("Training MLP with SMOTE")
 print("=" * 60)
 
 mlp_model = MLPClassifier(
@@ -254,13 +242,13 @@ mlp_model = MLPClassifier(
 )
 
 mlp_model.fit(
-    X_train_smote,
+    X_train_smote_scaled,
     y_train_smote,
 )
 
 
 # ==========================================================
-# Evaluate SMOTENC MLP
+# Evaluate SMOTE MLP
 # ==========================================================
 
 y_pred, y_prob, metrics = evaluate_classifier(
@@ -270,18 +258,18 @@ y_pred, y_prob, metrics = evaluate_classifier(
 )
 
 print_metrics(
-    "MLP + SMOTENC",
+    "MLP + SMOTE",
     metrics,
 )
 save_results(
-    "MLP + SMOTENC",
+    "MLP + SMOTE",
     metrics,
-    SMOTENC_RESULTS_FILE,
+    SMOTE_RESULTS_FILE,
 )
 
 
 # ==========================================================
-# Save SMOTENC MLP
+# Save SMOTE MLP
 # ==========================================================
 
 save_model(

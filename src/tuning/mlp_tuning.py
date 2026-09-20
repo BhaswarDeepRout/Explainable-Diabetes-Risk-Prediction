@@ -7,6 +7,7 @@ Hyperparameter tuning for MLP using Optuna.
 
 import optuna
 from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import Pipeline
 
 from sklearn.model_selection import (
     StratifiedKFold,
@@ -68,13 +69,13 @@ def tune_mlp():
 
     X, y = prepare_data(dataset)
 
-    X_train, X_test, y_train, y_test = split_dataset(
+    X_train_unscaled, X_test_unscaled, y_train, y_test = split_dataset(
         X,
         y,
     )
     X_train, X_test, scaler = scale_features(
-        X_train,
-        X_test,
+        X_train_unscaled,
+        X_test_unscaled,
     )
     # ---------------------------------------------
     # Cross Validation
@@ -138,18 +139,23 @@ def tune_mlp():
                 800,
             ),
 
-            "early_stopping": True,
+            "early_stopping": False,
 
             "random_state": RANDOM_STATE,
         }
 
         model = MLPClassifier(**params)
 
+        pipeline = Pipeline([
+            ("scaler", scaler),
+            ("mlp", model)
+        ])
+
         scores = cross_validate(
 
-            estimator=model,
+            estimator=pipeline,
 
-            X=X_train,
+            X=X_train_unscaled,
 
             y=y_train,
 
@@ -173,7 +179,7 @@ def tune_mlp():
 
     study.optimize(
         objective,
-        n_trials=20,
+        n_trials=15,
         show_progress_bar=True,
     )
 
@@ -223,7 +229,7 @@ def tune_mlp():
 
     best_params.update({
 
-        "early_stopping": True,
+        "early_stopping": False,
 
         "random_state": RANDOM_STATE,
 
