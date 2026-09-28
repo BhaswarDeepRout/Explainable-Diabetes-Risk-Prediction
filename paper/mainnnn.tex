@@ -34,11 +34,11 @@ Email: (2405739, 2405287, 24052261, 2405281, 2405868)@kiit.ac.in
 \maketitle
 
 \begin{abstract}
-Diabetes mellitus is a major chronic health condition in which early detection can reduce the risk of serious long-term complications. Machine learning and deep learning techniques have demonstrated significant potential for identifying individuals at risk from patient health indicators. However, challenges such as class imbalance, model complexity, limited interpretability, and potential data leakage can reduce the reliability and clinical usefulness of predictive systems. This study proposes an explainable heterogeneous machine learning and deep learning framework for early diabetes risk prediction. The framework evaluates multiple model families together with ensemble learning and Explainable Artificial Intelligence (XAI). The proposed pipeline incorporates systematic preprocessing, feature analysis, hyperparameter optimization, class-imbalance handling using SMOTE, and out-of-fold prediction-based stacking. A number of different heterogeneous models are evaluated based on accuracy, precision, recall, F1 score, ROC AUC, and various other criteria. The optimization and preprocessing are done based only on the training set without touching the test set at all. Out-of-fold predictions prevent training-label leakage in the ensemble, while SHAP identifies key features contributing to diabetes risk. The framework balances performance, reliability, and interpretability for trustworthy AI-based diabetes prediction.
+Diabetes mellitus is a major chronic health condition in which early detection can reduce the risk of serious long-term complications. Machine learning and deep learning techniques have demonstrated significant potential for identifying individuals at risk from patient health indicators. However, challenges such as class imbalance, model complexity, limited interpretability, and potential data leakage can reduce the reliability and clinical usefulness of predictive systems. This study proposes an explainable heterogeneous machine learning and deep learning framework for early diabetes risk prediction. The framework evaluates multiple model families together with ensemble learning and Explainable Artificial Intelligence (XAI). The proposed pipeline incorporates systematic preprocessing, feature analysis, hyperparameter optimization, SMOTENC-based class-imbalance experiments, and base-level OOF stacking with meta-level cross-fitting for threshold selection. A number of different heterogeneous models are evaluated based on accuracy, precision, recall, F1 score, ROC AUC, and various other criteria. The optimization and preprocessing are done based only on the training set without touching the test set at all. Out-of-fold predictions prevent training-label leakage in the ensemble, while SHAP identifies key features contributing to diabetes risk. The framework balances performance, reliability, and interpretability for trustworthy AI-based diabetes prediction.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Diabetes Prediction, Machine Learning, Deep Learning, Ensemble Learning, Stacking, SMOTE, Explainable Artificial Intelligence, SHAP, XGBoost
+Diabetes Prediction, Machine Learning, Deep Learning, Ensemble Learning, Stacking, SMOTENC, Explainable Artificial Intelligence, SHAP, XGBoost
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -212,20 +212,6 @@ The workflow proceeds from data validation and preprocessing to feature transfor
 % Stacking branch
 % ------------------------------------------------
 
-\node[smallbox, right=32mm of comparison] (oof) {
-    OOF Stacking\\
-    XGBoost + CatBoost + MLP
-};
-
-\node[smallbox, below=of oof] (meta) {
-    Logistic Regression\\
-    Meta-Learner
-};
-
-\node[smallbox, below=of meta, minimum height=1.05cm, inner sep=3pt] (threshold) {
-    OOF Threshold Optimization\\[2pt]
-    Best Threshold = 0.66
-};
 
 % ------------------------------------------------
 % Final model branch
@@ -284,15 +270,10 @@ The workflow proceeds from data validation and preprocessing to feature transfor
 \draw[arrow] (shap) -- (findings);
 
 % ------------------------------------------------
-\input{figure1_workflow.tex}\n% OOF stacking branch
+\input{figure1_workflow.tex}% workflow figure
 % ------------------------------------------------
 
-\draw[arrow] (comparison) -- (oof);
-\draw[arrow] (oof) -- (meta);
-\draw[arrow] (meta.south) -- (threshold.north);
 
-% Threshold-selected stacking model evaluated
-\draw[arrow] (threshold.west) -| (evaluation.east);
 
 \end{tikzpicture}
 
@@ -370,8 +351,8 @@ Models are compared using accuracy, precision, recall, F1-score, ROC-AUC, and PR
 
 In addition to evaluating individual models, the study investigates whether predictions from different learning algorithms can be combined through stacking.
 
-textbf{Note:} The Level-0 stacking MLP uses 				exttt{hidden_layer_sizes=(128, 64)} with 				exttt{early_stopping=False}, which is a separate configuration from the standalone tuned MLP 				exttt{(128,)} used in the individual model comparison.
-The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\t		exttt{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \t		exttt{X\_meta\_train}, applied to the untouched test meta-features (\t		exttt{X\_meta\_test}), and evaluated once on the independent test set.
+\textbfNote:} The Level-0 stacking MLP uses 				\textbfhidden_layer_sizes=(128, 64)} with 				\textbfearly_stopping=False}, which is a separate configuration from the standalone tuned MLP 				\textbf(128,)} used in the individual model comparison.
+The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\t		\textbfX\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \t		\textbfX\_meta\_train}, applied to the untouched test meta-features (\t		\textbfX\_meta\_test}), and evaluated once on the independent test set.
 
 The important aspect of this process is the use of out-of-fold (OOF) predictions. Instead of generating predictions for a training observation using a model that has already seen that observation during training, the training data are divided into folds. Each observation receives a prediction from a model that was trained without that observation.
 
@@ -463,11 +444,11 @@ Hyperparameter optimization substantially changed the operating point of XGBoost
 \centering
 \begin{tabular}{p{2.8cm} p{5.2cm}}
 \toprule
-\textbf{Model} & \textbf{Hyperparameters} \\
+\textbfModel} & \textbfHyperparameters} \\
 \midrule
-\textbf{XGBoost Tuned} & n\_estimators: 697, max\_depth: 6, learning\_rate: 0.041, subsample: 0.601, colsample\_bytree: 0.754, gamma: 2.414 \\
-\textbf{CatBoost Tuned} & iterations: 665, depth: 6, learning\_rate: 0.022, l2\_leaf\_reg: 10.995, bagging\_temperature: 6.618 \\
-\textbf{MLP Tuned} & hidden\_layer\_sizes: (128,), activation: relu, alpha: 0.004, learning\_rate\_init: 0.006, batch\_size: 128, max\_iter: 406 \\
+\textbfXGBoost Tuned} & n\_estimators: 697, max\_depth: 6, learning\_rate: 0.041, subsample: 0.601, colsample\_bytree: 0.754, gamma: 2.414 \\
+\textbfCatBoost Tuned} & iterations: 665, depth: 6, learning\_rate: 0.022, l2\_leaf\_reg: 10.995, bagging\_temperature: 6.618 \\
+\textbfMLP Tuned} & hidden\_layer\_sizes: (128,), activation: relu, alpha: 0.004, learning\_rate\_init: 0.006, batch\_size: 128, max\_iter: 406 \\
 \bottomrule
 \end{tabular}
 \end{table}
