@@ -326,7 +326,7 @@ for fold, (train_idx, val_idx) in enumerate(
         learning_rate_init=0.001,
         batch_size=128,
         max_iter=500,
-        early_stopping=True,
+        early_stopping=False,
         random_state=RANDOM_STATE,
     )
 

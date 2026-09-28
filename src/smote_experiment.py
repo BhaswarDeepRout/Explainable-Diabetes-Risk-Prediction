@@ -249,7 +249,7 @@ mlp_model = MLPClassifier(
     learning_rate_init=0.001,
     batch_size=128,
     max_iter=500,
-    early_stopping=True,
+    early_stopping=False,
     random_state=RANDOM_STATE,
 )
 

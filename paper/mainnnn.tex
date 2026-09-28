@@ -370,7 +370,7 @@ Models are compared using accuracy, precision, recall, F1-score, ROC-AUC, and PR
 
 In addition to evaluating individual models, the study investigates whether predictions from different learning algorithms can be combined through stacking.
 
-The stacking framework uses the predictions of multiple base learners as inputs to a higher-level meta-model. In the proposed implementation, predictions from CatBoost, XGBoost, and MLP are used to construct the meta-level representation.
+The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\texttt{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \texttt{X\_meta\_train}, applied to the untouched test meta-features (\texttt{X\_meta\_test}), and evaluated once on the independent test set.
 
 The important aspect of this process is the use of out-of-fold (OOF) predictions. Instead of generating predictions for a training observation using a model that has already seen that observation during training, the training data are divided into folds. Each observation receives a prediction from a model that was trained without that observation.
 
@@ -392,10 +392,10 @@ The stacking model produces a probability for the positive class. A probability 
 
 Therefore, the proposed framework determines an alternative threshold using the OOF predictions. Candidate thresholds ranging from 0.10 to 0.90, in increments of 0.01, are evaluated. For every candidate threshold, accuracy, precision, recall, and F1-score are calculated.
 
-The threshold producing the highest OOF F1-score is selected.
+The threshold producing the highest meta-OOF F1-score is selected from the cross-fitted meta-level training predictions.
 
 \begin{equation}
-\text{Best OOF Threshold} = 0.66
+\text{Best Meta-OOF Threshold} = 0.66, \quad \text{Meta-OOF F1-score} = 0.8135
 \end{equation}
 
 \begin{equation}
@@ -510,7 +510,7 @@ The low false-positive count explains the high precision, whereas the false-nega
 
 A stacking experiment was conducted to determine whether predictions from XGBoost, CatBoost, and MLP could be combined to produce a stronger predictive representation.
 
-The stacking framework generated out-of-fold predictions for the training data and used these predictions to train the meta-model. The resulting ensemble was then evaluated on the independent test set.
+The stacking framework generated out-of-fold predictions at the base level and used cross-fitted meta-level predictions to train and validate the meta-model for threshold selection. The final meta-model was then fitted on all meta-training data and evaluated on the independent test set.
 
 The stacking model produced accuracy 0.9711, precision 0.9554, recall 0.7020, F1-score 0.8093, ROC-AUC 0.9775, and PR-AUC 0.8853.
 
