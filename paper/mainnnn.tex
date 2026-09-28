@@ -416,7 +416,7 @@ The corresponding confusion matrix contains 17,486 true negatives, 29 false posi
 
 The results indicate that the selected model provides strong overall discrimination while maintaining high precision. However, the recall value also shows that a proportion of positive cases remain unidentified. This limitation is important and should be explicitly acknowledged rather than presenting the model as error-free.
 
-For comparison, the leakage-free stacking threshold experiment obtains accuracy 0.9711, precision 0.9554, recall 0.7020, F1-score 0.8093, ROC-AUC 0.9775, and PR-AUC 0.8853.
+For comparison, the leakage-free stacking threshold experiment (rerun 2026-09-28, meta-level cross-fitted OOF) obtains accuracy 0.9699, precision 0.9228, recall 0.7193, F1-score 0.8085, ROC-AUC 0.9778, and PR-AUC 0.8848.
 
 The stacking configuration therefore produces a slightly higher recall than the tuned XGBoost model but does not exceed the tuned XGBoost configuration in F1-score or ROC-AUC. Consequently, tuned XGBoost is selected as the primary final model, while the stacking experiment serves as an additional ensemble investigation within the proposed framework.
 
@@ -560,7 +560,7 @@ MLP + SMOTE & 0.948783 & 0.688143 & 0.757449 & 0.721135 & 0.968909 & 0.855925 \\
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\columnwidth]{pr_curves_comparative.png}
+    \includegraphics[width=\columnwidth]{pr_curves_comparative.png} % updated 2026-09-28 from fresh meta-OOF run
     \caption{Held-out test Precision-Recall (PR) curves for the evaluated models. The plot axes are magnified to the region of interest (Recall $\ge$ 0.55, Precision $\ge$ 0.45) to distinctly visualize the performance divergence between models, as standard axes render the differences imperceptible.}
     \label{fig:pr_curves}
 \end{figure}
