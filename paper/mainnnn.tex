@@ -55,7 +55,7 @@ SHapley Additive exPlanations (SHAP), one of the available techniques, estimates
 
 Another concern is methodological reliability. Preprocessing, oversampling, hyperparameter tuning, threshold selection, and ensemble construction can cause leakage of information while validating or when the test data are used. A reliable framework should keep training separate from the final test evaluation.
 
-The objective is to develop a reproducible diabetes prediction framework combining heterogeneous Machine Learning and Deep Learning models with ensemble learning and XAI. The methodology focuses on preprocessing, hyperparameter optimization, SMOTE experiments, out-of-fold stacking, leakage-free threshold selection, and SHAP-based interpretation.
+The objective is to develop a reproducible diabetes prediction framework combining heterogeneous Machine Learning and Deep Learning models with ensemble learning and XAI. The methodology focuses on preprocessing, hyperparameter optimization, SMOTENC experiments, out-of-fold stacking, leakage-free threshold selection, and SHAP-based interpretation.
 
 \section{Literature Review}
 
@@ -92,7 +92,7 @@ themselves. In \cite{arora2025}, different XAI techniques such as SHAP, LIME, Ex
 
 Finally, \cite{masood2026} provided a systematic review of AI-powered approaches for diabetes prediction covering conventional machine learning, deep learning, ensemble learning, hybrid approaches, and explainable AI. The review demonstrated that ensemble techniques such as Random Forest and XGBoost perform well on structured clinical data, whereas deep learning models such as CNNs are well suited for medical imaging and LSTM/GRU networks are effective for time-series data such as continuous glucose monitoring. The review also highlights some challenges including class imbalance, interpretability, generalizability, computational requirements, data privacy and clinical deployment. These observations highlight the necessity of rigorous evaluation, careful validation, and reproducible approaches in diabetes prediction research.
 
-Overall, the literature review indicated that ensemble learning, class balancing, model optimization, deep learning and explainable AI have advanced significantly in the prediction of diabetes. However, the research gap is not the absence of these techniques but their systematic integration and rigorous evaluation. Existing literature emphasizes the necessity of leakage-sensitive preprocessing, appropriate class balancing, hyperparameter tuning, strong ensemble construction, and evaluation using several metrics beyond accuracy. Based on these results, this work proposes a complete pipeline for diabetes prediction that comprises: (1) preprocessing of data, (2) comparison of machine learning and deep learning models, (3) hyperparameter optimization, (4) experiments with SMOTE, (5) out-of-fold stacking, (6) threshold optimization to avoid leakage, and (7) interpretation with SHAP, keeping an intact test set for the final evaluation. The framework aims at a trade-off between predictive performance, reliability and interpretability.
+Overall, the literature review indicated that ensemble learning, class balancing, model optimization, deep learning and explainable AI have advanced significantly in the prediction of diabetes. However, the research gap is not the absence of these techniques but their systematic integration and rigorous evaluation. Existing literature emphasizes the necessity of leakage-sensitive preprocessing, appropriate class balancing, hyperparameter tuning, strong ensemble construction, and evaluation using several metrics beyond accuracy. Based on these results, this work proposes a complete pipeline for diabetes prediction that comprises: (1) preprocessing of data, (2) comparison of machine learning and deep learning models, (3) hyperparameter optimization, (4) experiments with SMOTENC, (5) out-of-fold stacking, (6) threshold optimization to avoid leakage, and (7) interpretation with SHAP, keeping an intact test set for the final evaluation. The framework aims at a trade-off between predictive performance, reliability and interpretability.
 
 
 
@@ -108,189 +108,75 @@ The proposed study develops an explainable machine learning framework for diabet
 
 The complete methodology consists of several sequential stages. The process begins with dataset inspection and data-quality verification (duplicate/conflict removal before split; learned transformations after split), followed by stratified train/test split, then preprocessing fitted on training only and applied to both partitions while maintaining the class distribution. Several machine learning models are trained to establish baseline performance. Additional experiments are performed using SMOTENC to investigate the effect of class balancing, while hyperparameter tuning is applied to selected models to improve their predictive performance.
 
-Following the individual model experiments, an out-of-fold stacking approach is developed using predictions from multiple base learners. The stacking model produces probability estimates rather than directly relying on a fixed classification boundary. A classification threshold is subsequently optimized using only the out-of-fold training predictions. This prevents information from the untouched test set from influencing the threshold-selection process.
+Following the individual model experiments, an out-of-fold stacking approach is developed using predictions from multiple base learners. The stacking model produces probability estimates rather than directly relying on a fixed classification boundary. A classification threshold is subsequently optimized using only the meta-level cross-fitted OOF probabilities. This prevents information from the untouched test set from influencing the threshold-selection process.
 
 Finally, the best-performing individual model is examined using SHAP-based explainability. This provides both a global view of feature importance and feature-level relationships that help explain the model's predictions.
 
-The workflow proceeds from data validation and preprocessing to feature transformation, stratified splitting, comparative model development, SMOTE experiments, hyperparameter optimization, model comparison, OOF stacking, OOF threshold selection, final testing, and SHAP-based explainability.
+The workflow proceeds from data validation and preprocessing to feature transformation, stratified splitting, comparative model development, SMOTENC experiments, hyperparameter optimization, model comparison, base-level OOF stacking, meta-level cross-fitting, meta-OOF threshold selection, final testing, and SHAP-based explainability.
 
-\begin{figure*}[!t]
+\begin{figure*}[t]
 \centering
+\begin{tikzpicture}[font=\small, node distance=0.9cm and 1.2cm,
+    box/.style={rectangle, draw, rounded corners, fill=blue!8, minimum width=3.4cm, minimum height=0.6cm, align=center},
+    arrow/.style={->, >=stealth, thick},
+    smallbox/.style={rectangle, draw, rounded corners, fill=green!8, minimum width=3.0cm, minimum height=0.55cm, align=center}]
 
-\begin{tikzpicture}[
-    node distance=5mm and 10mm,
-    transform shape,
-    box/.style={
-        rectangle,
-        rounded corners,
-        draw,
-        align=center,
-        minimum width=3.25cm,
-        minimum height=0.72cm,
-        font=\scriptsize
-    },
-    smallbox/.style={
-        rectangle,
-        rounded corners,
-        draw,
-        align=center,
-        minimum width=3.0cm,
-        minimum height=0.90cm,
-        font=\scriptsize
-    },
-    arrow/.style={
-        thick,
-        -{Stealth}
-    }
-]
+% Main pipeline (left column)
+\node[box] (raw) {Raw Diabetes Dataset};
+\node[box, below=0.5cm of raw] (inspect) {Dataset Inspection};
+\node[box, below=0.5cm of inspect] (clean) {Data Quality Assessment\\(Duplicate Removal / Conflict Detection)};
+\node[box, below=0.5cm of clean] (split) {Stratified Train/Test Split\\(80\% Train / 20\% Test)};
+\node[box, below=0.5cm of split, fill=yellow!10] (locked) {Test Set Locked};
+\node[box, below=0.5cm of locked] (fitpre) {Fit Learned Preprocessing\\on Training Data ONLY};
+\node[box, below=0.5cm of fitpre] (transform) {Transform Train and Test\\(Training-Fitted Scaler/Encoder)};
+\node[box, below=0.5cm of transform] (compare) {Comparative Model Development\};
 
-% ------------------------------------------------
-% Main preprocessing pipeline
-% ------------------------------------------------
-
-\node[box] (raw) {
-    Raw Diabetes Dataset
-};
-
-\node[box, below=of raw] (inspect) {
-    Dataset Inspection\\
-    Data Types, Missing Values, Class Distribution
-};
-
-\node[box, below=of inspect] (quality) {
-    Data Quality Assessment\\
-    Duplicate Removal\\
-    Conflicting Label Detection
-};
-
-\node[box, below=of quality] (preprocess) {
-    Data Preprocessing\\
-    Missing Value Handling\\
-    One-Hot Encoding
-};
-
-\node[box, below=of preprocess] (split) {
-    Stratified Train--Test Split\\
-    80\% Training \quad 20\% Testing
-};
-
-% ------------------------------------------------
-% Training data
-% ------------------------------------------------
-
-\node[box, below=of split] (training) {
-    Training Data\\
-    Test Set Locked
-};
-
-\node[box, below=of training] (models) {
-    Comparative Model Development\\
-    XGBoost, CatBoost, MLP, TabNet
-};
-
-% ------------------------------------------------
-% Experimental branches
-% ------------------------------------------------
-
-\node[smallbox, below left=12mm and 20mm of models] (smote) {
-    SMOTENC Experiments\\
-    XGBoost, CatBoost, MLP
-};
-
-\node[smallbox, below right=12mm and 20mm of models] (tuning) {
-    Hyperparameter Optimization\\
-    Optuna
-};
-
-\node[box, below=34mm of models] (comparison) {
-    Model Performance Comparison\\
-    Accuracy, Precision, Recall,\\
-    F1-score, ROC-AUC, PR-AUC
-};
-
-% ------------------------------------------------
-% Stacking branch
-% ------------------------------------------------
-
-
-% ------------------------------------------------
-% Final model branch
-% ------------------------------------------------
-
-\node[box, below=of comparison] (final) {
-    Primary Final Individual Model\\
-    Tuned XGBoost
-};
-
-\node[box, below=of final] (evaluation) {
-    Independent Test Evaluation\\
-    Untouched Test Set
-};
-
-\node[box, below=of evaluation] (shap) {
-    SHAP Explainability\\
-    Global Feature Contribution
-};
-
-\node[box, below=of shap] (findings) {
-    Research Findings\\
-    Performance and Interpretability Analysis
-};
-
-% ------------------------------------------------
-% Arrows: main pipeline
-% ------------------------------------------------
+ode[box, below=0.6cm of compare] (comparison) {Model Performance Comparison};
+\draw[arrow] (compare) -- (comparison);
 
 \draw[arrow] (raw) -- (inspect);
-\draw[arrow] (inspect) -- (quality);
-\draw[arrow] (quality) -- (preprocess);
-\draw[arrow] (preprocess) -- (split);
-\draw[arrow] (split) -- (training);
-\draw[arrow] (training) -- (models);
+\draw[arrow] (inspect) -- (clean);
+\draw[arrow] (clean) -- (split);
+\draw[arrow] (split) -- (locked);
+\draw[arrow] (locked) -- (fitpre);
+\draw[arrow] (fitpre) -- (transform);
+\draw[arrow] (transform) -- (compare);
 
-% ------------------------------------------------
-% Experimental branches
-% ------------------------------------------------
+% Experimental branches (right of compare)
+\node[smallbox, right=2.0cm of compare, yshift=0.8cm, fill=orange!10] (smote) {SMOTENC Experiments};
+\node[smallbox, right=2.0cm of compare, yshift=-0.8cm, fill=purple!10] (optuna) {Optuna Hyperparameter Optimization};
+\draw[arrow] (compare) -- (smote);
+\draw[arrow] (compare) -- (optuna);
 
-\draw[arrow] (models) -- (smote);
-\draw[arrow] (models) -- (tuning);
+% Primary final model branch (below compare, left)
+\node[box, below=1.2cm of compare, fill=cyan!10] (tuned) {Tuned XGBoost\\(Primary Final Model)};
+\node[box, below=0.5cm of tuned] (eval) {Independent Test Evaluation};
+\node[box, below=0.5cm of eval, fill=gray!10] (shap) {SHAP Explainability};
+\draw[arrow] (comparison) -- (tuned);
+\draw[arrow] (tuned) -- (eval);
+\draw[arrow] (eval) -- (shap);
 
+% Stacking branch (right, aligned with compare -> tuned)
+\node[smallbox, right=2.8cm of compare, yshift=-2.2cm, fill=red!10] (base) {Base-Level OOF Predictions\\(XGBoost + CatBoost + MLP\\5-Fold Cross-Validation)};
+\node[box, below=0.5cm of base] (xmeta) {$X_{\text{meta\_train}}$};
+\node[box, below=0.5cm of xmeta, fill=red!15] (cross) {Meta-Level Cross-Fitting\\(5-Fold Logistic Regression)};
+\node[box, below=0.5cm of cross] (metaoof) {Meta-OOF Probabilities};
+\node[box, below=0.5cm of metaoof] (thresh) {Threshold Optimization};
+\node[box, below=0.5cm of thresh, fill=blue!15] (final) {Final Logistic Regression\\Fitted on Full $X_{\text{meta\_train}}$};
+\node[box, below=0.5cm of final] (xmetatest) {$X_{\text{meta\_test}}$};
+\node[box, below=0.5cm of xmetatest] (eval2) {Independent Test Evaluation};
 
-\draw[arrow] (smote.south)  |- ([yshift=8mm]comparison.north) -- (comparison.north);
-\draw[arrow] (tuning.south) |- ([yshift=8mm]comparison.north) -- (comparison.north);
-\draw[arrow] (models) -- (comparison);
-
-% ------------------------------------------------
-% Model selection and final evaluation
-% ------------------------------------------------
-
-\draw[arrow] (comparison) -- (final);
-\draw[arrow] (final) -- (evaluation);
-\draw[arrow] (evaluation) -- (shap);
-\draw[arrow] (shap) -- (findings);
-
-% ------------------------------------------------
-\input{figure1_workflow.tex}% workflow figure
-% ------------------------------------------------
-
-
-
+\draw[arrow] (base) -- (xmeta);
+\draw[arrow] (xmeta) -- (cross);
+\draw[arrow] (cross) -- (metaoof);
+\draw[arrow] (metaoof) -- (thresh);
+\draw[arrow] (thresh) -- (final);
+\draw[arrow] (final) -- (xmetatest);
+\draw[arrow] (xmetatest) -- (eval2);
+\draw[arrow] (comparison.east) -- ++(0.8cm,0) |- (base.west);
 \end{tikzpicture}
-
-\caption{
-Complete workflow of the proposed explainable diabetes risk-prediction
-framework. The methodology consists of data-quality assessment,
-leakage-free preprocessing, stratified train--test partitioning,
-comparative model development, separate SMOTE and hyperparameter
-optimization experiments, model comparison, OOF stacking with a
-Logistic Regression meta-learner, OOF-based threshold optimization,
-independent test evaluation, and SHAP-based explainability.
-The independent test set remains isolated from model development and
-threshold selection.
-}
-
+\caption{Complete workflow of the proposed explainable diabetes risk-prediction framework: dataset inspection, deterministic data-quality cleaning, stratified split, test-set isolation, training-only learned preprocessing, comparative model development (with SMOTENC and Optuna branches), base-level OOF stacking with meta-level cross-fitting, meta-OOF threshold selection, final Logistic Regression fit on full $X_{\text{meta\_train}}$, independent test evaluation, and SHAP explainability.}
 \label{fig:workflow}
-
 \end{figure*}
 
 \subsection{Dataset Preparation and Data Quality Assessment}
@@ -309,7 +195,7 @@ Numerical variables are retained in numerical form, while categorical variables 
 
 An important characteristic of the dataset is the unequal distribution of the target classes. After data cleaning, the dataset contains 87,573 non-diabetic observations and 8,391 diabetic observations. Therefore, the positive class represents approximately 8.74\% of the final dataset.
 
-This imbalance could be a potential problem for binary classification. A model can achieve high overall accuracy by biasing the majority class, even while missing a significant amount of diabetic cases. That is why accuracy is deemed to be inadequate as the sole measure of evaluation. Accuracy is considered together with Precision, Recall, F1-score, ROC-AUC and PR-AUC. In particular, recall gives information about the ability of the model to identify positive cases of diabetes and precision shows how many of the cases predicted to be diabetic are actually positive. We also conduct experiments based on SMOTE to check if explicit balancing of classes improves the predictive behaviour. These experiments are treated as different model configurations, instead of assuming that oversampling will automatically lead to better results.
+This imbalance could be a potential problem for binary classification. A model can achieve high overall accuracy by biasing the majority class, even while missing a significant amount of diabetic cases. That is why accuracy is deemed to be inadequate as the sole measure of evaluation. Accuracy is considered together with Precision, Recall, F1-score, ROC-AUC and PR-AUC. In particular, recall gives information about the ability of the model to identify positive cases of diabetes and precision shows how many of the cases predicted to be diabetic are actually positive. We also conduct experiments based on SMOTENC to check if explicit balancing of classes improves the predictive behaviour. These experiments are treated as different model configurations, instead of assuming that oversampling will automatically lead to better results.
 
 
 \subsection{Training and Testing Strategy}
@@ -325,13 +211,13 @@ Four heterogeneous algorithms are evaluated: XGBoost and CatBoost as gradient-bo
 
 \subsection{SMOTENC-Based Experiments}
 
-Because only 8.74\% of the observations belong to the positive class, Synthetic Minority Over-sampling Technique (SMOTE) is investigated as a separate experimental condition.
+Because only 8.74\% of the observations belong to the positive class, Synthetic Minority Over-sampling Technique for Nominal and Continuous (SMOTENC) is investigated as a separate experimental condition.
 
-SMOTE generates synthetic minority-class observations based on existing minority samples. Rather than simply duplicating positive observations, it creates additional synthetic samples in the feature space.
+SMOTENC generates synthetic minority-class observations based on existing minority samples. Rather than simply duplicating positive observations, it creates additional synthetic samples in the feature space while handling categorical features.
 
-In this study, SMOTE is evaluated with XGBoost, CatBoost, and MLP. The purpose is to determine whether increasing the representation of the minority class produces a useful improvement in diabetes detection.
+In this study, SMOTENC is evaluated with XGBoost, CatBoost, and MLP. The purpose is to determine whether increasing the representation of the minority class produces a useful improvement in diabetes detection.
 
-An important aspect of the proposed methodology is that SMOTE is treated as an experiment rather than an assumed improvement. The resulting models are compared against their corresponding non-SMOTENC configurations using the same evaluation criteria. This allows the study to determine whether balancing the training data actually improves the final predictive trade-off between precision and recall.
+An important aspect of the proposed methodology is that SMOTENC is treated as an experiment rather than an assumed improvement. The resulting models are compared against their corresponding non-SMOTENC configurations using the same evaluation criteria. This allows the study to determine whether balancing the training data actually improves the final predictive trade-off between precision and recall.
 
 \subsection{Hyperparameter Optimization}
 
@@ -351,8 +237,8 @@ Models are compared using accuracy, precision, recall, F1-score, ROC-AUC, and PR
 
 In addition to evaluating individual models, the study investigates whether predictions from different learning algorithms can be combined through stacking.
 
-	extbf{Note:} The Level-0 stacking MLP uses 	exttt{hidden\_layer\_sizes=(128, 64)} with 	exttt{early\_stopping=False}, which is a separate configuration from the standalone tuned MLP 	exttt{(128,)}, used in the individual model comparison.
-The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\t		\textbfX\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \t		\textbfX\_meta\_train}, applied to the untouched test meta-features (\t		\textbfX\_meta\_test}), and evaluated once on the independent test set.
+\textbf{Note:} The Level-0 stacking MLP uses \texttt{hidden\_layer\_sizes=(128, 64)} with \texttt{early\_stopping=False}, which is a separate configuration from the standalone tuned MLP \texttt{(128,)}, used in the individual model comparison.
+The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\texttt{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \texttt{X\_meta\_train}, applied to the untouched test meta-features (\texttt{X\_meta\_test}), and evaluated once on the independent test set.
 
 The important aspect of this process is the use of out-of-fold (OOF) predictions. Instead of generating predictions for a training observation using a model that has already seen that observation during training, the training data are divided into folds. Each observation receives a prediction from a model that was trained without that observation.
 
@@ -372,7 +258,7 @@ This approach reduces the possibility that the meta-model simply learns predicti
 
 The stacking model produces a probability for the positive class. A probability value must subsequently be converted into a binary prediction using a classification threshold. The conventional threshold of 0.50 is not necessarily optimal for an imbalanced medical prediction problem.
 
-Therefore, the proposed framework determines an alternative threshold using the OOF predictions. Candidate thresholds ranging from 0.10 to 0.90, in increments of 0.01, are evaluated. For every candidate threshold, accuracy, precision, recall, and F1-score are calculated.
+Therefore, the proposed framework determines an alternative threshold using the meta-level cross-fitted OOF probabilities. Candidate thresholds ranging from 0.10 to 0.90, in increments of 0.01, are evaluated. For every candidate threshold, accuracy, precision, recall, and F1-score are calculated.
 
 The threshold producing the highest meta-OOF F1-score is selected from the cross-fitted meta-level training predictions.
 
@@ -384,7 +270,7 @@ The threshold producing the highest meta-OOF F1-score is selected from the cross
 \text{Meta-OOF F1-score} = 0.8135
 \end{equation}
 
-Most importantly, this threshold is selected exclusively from the training-side OOF predictions. The untouched test set is not used to search for the threshold.
+Most importantly, this threshold is selected exclusively from the meta-level cross-fitted OOF probabilities. The untouched test set is not used to search for the threshold.
 
 After the threshold has been fixed at 0.66, it is applied once to the independent test probabilities to obtain the final stacking predictions. This procedure is referred to as leakage-free threshold optimization because the test labels do not participate in threshold selection.
 
@@ -426,7 +312,7 @@ This interpretation complements the model's built-in feature importance rather t
 
 The proposed framework was evaluated using the cleaned diabetes dataset containing 95,964 observations and 16 modeling features. A stratified division produced 76,771 training observations and 19,193 independent test observations.
 
-The test set was not used during model development, hyperparameter optimization, or threshold selection. The experiments considered baseline machine learning models, tuned models, and SMOTE-based configurations.
+The test set was not used during model development, hyperparameter optimization, or threshold selection. The experiments considered baseline machine learning models, tuned models, and SMOTENC-based configurations.
 
 XGBoost, CatBoost, MLP, and TabNet were evaluated using accuracy, precision, recall, F1-score, ROC-AUC, and PR-AUC.
 
@@ -444,11 +330,11 @@ Hyperparameter optimization substantially changed the operating point of XGBoost
 \centering
 \begin{tabular}{p{2.8cm} p{5.2cm}}
 \toprule
-\	extbf{Model} & \	extbf{Hyperparameters} \\
+\textbf{Model} & \textbf{Hyperparameters} \\
 \midrule
-\textbfXGBoost Tuned} & n\_estimators: 697, max\_depth: 6, learning\_rate: 0.041, subsample: 0.601, colsample\_bytree: 0.754, gamma: 2.414 \\
-\textbfCatBoost Tuned} & iterations: 665, depth: 6, learning\_rate: 0.022, l2\_leaf\_reg: 10.995, bagging\_temperature: 6.618 \\
-\textbfMLP Tuned} & hidden\_layer\_sizes: (128,), activation: relu, alpha: 0.004, learning\_rate\_init: 0.006, batch\_size: 128, max\_iter: 406 \\
+\textbf{XGBoost Tuned} & n\_estimators: 697, max\_depth: 6, learning\_rate: 0.041, subsample: 0.601, colsample\_bytree: 0.754, gamma: 2.414 \\
+\textbf{CatBoost Tuned} & iterations: 665, depth: 6, learning\_rate: 0.022, l2\_leaf\_reg: 10.995, bagging\_temperature: 6.618 \\
+\textbf{MLP Tuned} & hidden\_layer\_sizes: (128,), activation: relu, alpha: 0.004, learning\_rate\_init: 0.006, batch\_size: 128, max\_iter: 406, early\_stopping: False \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -462,17 +348,17 @@ Tuned XGBoost and tuned CatBoost produced nearly identical accuracy (0.971604). 
 
 The small difference supports tuned XGBoost as the primary model under the selected evaluation criteria.
 
-\subsection{Effect of SMOTE}
+\subsection{Effect of SMOTENC}
 
-SMOTE was investigated to determine whether synthetic minority-class generation could improve the detection of diabetes cases.
+SMOTENC was investigated to determine whether synthetic minority-class generation could improve the detection of diabetes cases.
 
 For XGBoost, the SMOTENC configuration produced an F1-score of 0.804295, compared with 0.810038 for tuned XGBoost. CatBoost with SMOTENC obtained an F1-score of 0.806553, compared with 0.809773 for tuned CatBoost.
 
 The MLP configuration showed a different behavior. MLP with SMOTENC produced a recall of 0.757449, which was higher than the recall of the baseline and tuned MLP configurations. However, this improvement was accompanied by a considerable reduction in precision to 0.688143, resulting in an F1-score of 0.721135.
 
-These findings indicate that SMOTE did not provide a consistent improvement across the evaluated algorithms. In particular, increasing the representation of the minority class can improve sensitivity while simultaneously increasing false-positive predictions.
+These findings indicate that SMOTENC did not provide a consistent improvement across the evaluated algorithms. In particular, increasing the representation of the minority class can improve sensitivity while simultaneously increasing false-positive predictions.
 
-Therefore, the experimental results do not support the conclusion that SMOTE is universally beneficial for this dataset. Instead, its effect depends on the learning algorithm and the metric being prioritized.
+Therefore, the experimental results do not support the conclusion that SMOTENC is universally beneficial for this dataset. Instead, its effect depends on the learning algorithm and the metric being prioritized.
 
 \subsection{Comparison with MLP and TabNet}
 
@@ -502,9 +388,9 @@ The final stacking metrics are: Accuracy = 0.9699, Precision = 0.9228, Recall = 
 
 \subsection{Leakage-Free Threshold Optimization}
 
-The stacking model was further evaluated using an independently optimized classification threshold. Rather than selecting the threshold from the test set, the proposed approach examined the OOF training predictions.
+The stacking model was further evaluated using an independently optimized classification threshold. Rather than selecting the threshold from the test set, the proposed approach examined the meta-level cross-fitted OOF probabilities.
 
-Thresholds from 0.10 to 0.90 were evaluated at intervals of 0.01. The highest OOF F1-score was obtained at:
+Thresholds from 0.10 to 0.90 were evaluated at intervals of 0.01. The highest meta-OOF F1-score was obtained at:
 
 \begin{equation}
 \text{Threshold} = 0.66
@@ -513,7 +399,7 @@ Thresholds from 0.10 to 0.90 were evaluated at intervals of 0.01. The highest OO
 with:
 
 \begin{equation}
-\text{OOF F1-score} = 0.8135
+\text{meta-OOF F1-score} = 0.8135
 \end{equation}
 
 The selected threshold was then fixed before evaluation on the untouched test data. This procedure provides an important methodological advantage. The test labels were not used to select the threshold, which preserves the independence of the final test evaluation.
@@ -530,12 +416,12 @@ XGBoost Tuned & 0.971604 & 0.975651 & 0.692491 & 0.810038 & 0.977753 & 0.885530 
 CatBoost Tuned & 0.971604 & 0.977254 & 0.691299 & 0.809773 & 0.977688 & 0.884771 \\
 CatBoost & 0.971292 & 0.973928 & 0.690107 & 0.807813 & 0.977645 & 0.884398 \\
 XGBoost & 0.910123 & 0.492363 & 0.902861 & 0.637224 & 0.977153 & 0.883114 \\
-XGBoost + SMOTE & 0.970562 & 0.960298 & 0.691895 & 0.804295 & 0.976760 & 0.880220 \\
-CatBoost + SMOTE & 0.971083 & 0.971453 & 0.689511 & 0.806553 & 0.976565 & 0.881288 \\
+XGBoost + SMOTENC & 0.970562 & 0.960298 & 0.691895 & 0.804295 & 0.976760 & 0.880220 \\
+CatBoost + SMOTENC & 0.971083 & 0.971453 & 0.689511 & 0.806553 & 0.976565 & 0.881288 \\
 MLP Tuned & 0.971344 & 0.989583 & 0.679380 & 0.805654 & 0.974979 & 0.877987 \\
 MLP & 0.969989 & 0.951639 & 0.691895 & 0.801242 & 0.974733 & 0.875337 \\
 TabNet & 0.970983 & 0.996510 & 0.673349 & 0.803659 & 0.974507 & 0.873419 \\
-MLP + SMOTE & 0.948783 & 0.688143 & 0.757449 & 0.721135 & 0.968909 & 0.855925 \\
+MLP + SMOTENC & 0.948783 & 0.688143 & 0.757449 & 0.721135 & 0.968909 & 0.855925 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -589,7 +475,7 @@ The SHAP results complement the performance analysis by showing that HbA1c and b
 
 \subsection{Overall Discussion}
 
-The experiments show that additional complexity did not automatically produce better performance. SMOTE improved recall in selected configurations but reduced precision, while stacking slightly increased recall without improving the primary F1-score or ROC-AUC measures.
+The experiments show that additional complexity did not automatically produce better performance. SMOTENC improved recall in selected configurations but reduced precision, while stacking slightly increased recall without improving the primary F1-score or ROC-AUC measures.
 
 The principal value of the framework is the combination of controlled experimentation, protection of the independent test set, leakage-aware stacking, threshold optimization, and SHAP-based interpretation.
 
@@ -597,19 +483,19 @@ The principal value of the framework is the combination of controlled experiment
 
 This study presented an explainable machine learning framework for diabetes risk prediction using structured health-related data. The proposed methodology incorporated data-quality assessment, preprocessing, feature transformation, class-imbalance experiments, baseline machine learning models, hyperparameter optimization, ensemble learning, leakage-free threshold selection, and SHAP-based explainability.
 
-A total of 95,964 cleaned observations with 16 modeling features were used for the final experiments. Multiple machine learning approaches were compared, including XGBoost, CatBoost, MLP, and TabNet. SMOTE-based configurations were additionally evaluated to investigate the effect of synthetic minority-class generation.
+A total of 95,964 cleaned observations with 16 modeling features were used for the final experiments. Multiple machine learning approaches were compared, including XGBoost, CatBoost, MLP, and TabNet. SMOTENC-based configurations were additionally evaluated to investigate the effect of synthetic minority-class generation.
 
 Among the evaluated configurations, tuned XGBoost achieved the strongest overall performance, obtaining an accuracy of 97.16\%, precision of 97.57\%, recall of 69.25\%, F1-score of 81.00\%, ROC-AUC of 97.78\%, and PR-AUC of 88.55\% on the independent test set.
 
 The stacking experiment provided a complementary result. Although the ensemble achieved slightly higher recall, its overall F1-score and ROC-AUC remained marginally below the tuned XGBoost model. Consequently, tuned XGBoost was retained as the primary predictive model.
 
-The study also demonstrated a leakage-free threshold optimization procedure. The stacking threshold was selected exclusively from out-of-fold training predictions, resulting in an optimal threshold of 0.66 with an OOF F1-score of 0.8135. The untouched test data were not used during this selection process, helping preserve the validity of the final evaluation.
+The study also demonstrated a leakage-free threshold optimization procedure. The stacking threshold was selected exclusively from meta-level cross-fitted OOF probabilities, resulting in an optimal threshold of 0.66 with a meta-OOF F1-score of 0.8135. The untouched test data were not used during this selection process, helping preserve the validity of the final evaluation.
 
 The SHAP analysis provided further insight into the behavior of the selected model. HbA1c level and blood glucose level were the two most influential features, followed by age and BMI. This finding demonstrates the usefulness of explainable machine learning for identifying the variables that most strongly influence model predictions.
 
 Despite the strong predictive performance, the results should not be interpreted as evidence that the model can replace clinical diagnosis. The presence of 516 false-negative cases in the final XGBoost evaluation demonstrates that some diabetic observations remain unidentified. The model should therefore be considered a decision-support or risk-prediction component rather than an autonomous diagnostic system.
 
-Overall, the study demonstrates that strong tabular machine-learning models can be combined with careful experimental validation, leakage-aware model development, and SHAP-based interpretation to create a more transparent diabetes risk-prediction framework. The results also show that additional model complexity, SMOTE-based balancing, or stacking does not necessarily improve predictive performance across all evaluation metrics. Future work should investigate external validation on independent populations, temporal validation, calibration analysis, subgroup evaluation, and the incorporation of additional clinically relevant variables.
+Overall, the study demonstrates that strong tabular machine-learning models can be combined with careful experimental validation, leakage-aware model development, and SHAP-based interpretation to create a more transparent diabetes risk-prediction framework. The results also show that additional model complexity, SMOTENC-based balancing, or stacking does not necessarily improve predictive performance across all evaluation metrics. Future work should investigate external validation on independent populations, temporal validation, calibration analysis, subgroup evaluation, and the incorporation of additional clinically relevant variables.
 
 
 \begin{thebibliography}{00}
