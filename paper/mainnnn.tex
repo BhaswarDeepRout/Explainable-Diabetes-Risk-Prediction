@@ -4,11 +4,17 @@
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
 \usepackage{url}
 \usepackage{graphicx}
+\usepackage{placeins}
+\setlength{\textfloatsep}{6pt plus 2pt minus 2pt}
+\setlength{\floatsep}{5pt plus 2pt minus 2pt}
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{3pt}
+\setlength{\belowcaptionskip}{0pt}
 \usepackage{tikz}
-\usepackage{float}
-\usepackage{afterpage}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 \begin{document}
@@ -94,13 +100,9 @@ Finally, \cite{masood2026} provided a systematic review of AI-powered approaches
 
 Overall, the literature review indicated that ensemble learning, class balancing, model optimization, deep learning and explainable AI have advanced significantly in the prediction of diabetes. However, the research gap is not the absence of these techniques but their systematic integration and rigorous evaluation. Existing literature emphasizes the necessity of leakage-sensitive preprocessing, appropriate class balancing, hyperparameter tuning, strong ensemble construction, and evaluation using several metrics beyond accuracy. Based on these results, this work proposes a complete pipeline for diabetes prediction that comprises: (1) preprocessing of data, (2) comparison of machine learning and deep learning models, (3) hyperparameter optimization, (4) experiments with SMOTENC, (5) out-of-fold stacking, (6) threshold optimization to avoid leakage, and (7) interpretation with SHAP, keeping an intact test set for the final evaluation. The framework aims at a trade-off between predictive performance, reliability and interpretability.
 
-
-
 \section{Proposed Methodology}
 
 % \subsection{Figure 1: Proposed Framework Flowchart}
-
-
 
 \subsection{Overview of the Proposed Approach}
 
@@ -114,25 +116,31 @@ Finally, the best-performing individual model is examined using SHAP-based expla
 
 The workflow proceeds from data validation and preprocessing to feature transformation, stratified splitting, comparative model development, SMOTENC experiments, hyperparameter optimization, model comparison, base-level OOF stacking, meta-level cross-fitting, meta-OOF threshold selection, final testing, and SHAP-based explainability.
 
-\begin{figure*}[t]
+\begin{figure}[!htbp]
 \centering
-\begin{tikzpicture}[font=\small, node distance=0.9cm and 1.2cm,
-    box/.style={rectangle, draw, rounded corners, fill=blue!8, minimum width=3.4cm, minimum height=0.6cm, align=center},
-    arrow/.style={->, >=stealth, thick},
-    smallbox/.style={rectangle, draw, rounded corners, fill=green!8, minimum width=3.0cm, minimum height=0.55cm, align=center}]
+\begin{tikzpicture}[
+    font=\fontsize{5.7}{6.2}\selectfont,
+    box/.style={rectangle, draw=black, fill=white, rounded corners=0.6pt,
+                minimum height=0.52cm, text width=2.15cm,
+                align=center, inner sep=1.4pt},
+    branch/.style={rectangle, draw=black, fill=white, rounded corners=0.6pt,
+                   minimum height=0.52cm, text width=2.05cm,
+                   align=center, inner sep=1.4pt},
+    stack/.style={rectangle, draw=black, fill=white, rounded corners=0.6pt,
+                  minimum height=0.52cm, text width=2.20cm,
+                  align=center, inner sep=1.4pt},
+    arrow/.style={->, >=stealth, line width=0.4pt}
+]
 
-% Main pipeline (left column)
-\node[box] (raw) {Raw Diabetes Dataset};
-\node[box, below=0.5cm of raw] (inspect) {Dataset Inspection};
-\node[box, below=0.5cm of inspect] (clean) {Data Quality Assessment\\(Duplicate Removal / Conflict Detection)};
-\node[box, below=0.5cm of clean] (split) {Stratified Train/Test Split\\(80\% Train / 20\% Test)};
-\node[box, below=0.5cm of split, fill=yellow!10] (locked) {Test Set Locked};
-\node[box, below=0.5cm of locked] (fitpre) {Fit Learned Preprocessing\\on Training Data ONLY};
-\node[box, below=0.5cm of fitpre] (transform) {Transform Train and Test\\(Training-Fitted Scaler/Encoder)};
-\node[box, below=0.5cm of transform] (compare) {Comparative Model Development\};
-
-ode[box, below=0.6cm of compare] (comparison) {Model Performance Comparison};
-\draw[arrow] (compare) -- (comparison);
+% Main pipeline
+\node[box] (raw) at (3.5,11.55) {Raw Diabetes Dataset};
+\node[box] (inspect) at (3.5,10.58) {Dataset Inspection};
+\node[box] (clean) at (3.5,9.61) {Data Quality Assessment\\(Duplicate Removal / Conflict Detection)};
+\node[box] (split) at (3.5,8.56) {Stratified Train/Test Split\\(80\% Train / 20\% Test)};
+\node[box] (locked) at (3.5,7.53) {Test Set Locked};
+\node[box] (fitpre) at (3.5,6.45) {Fit Learned Preprocessing\\on Training Data ONLY};
+\node[box] (transform) at (3.5,5.34) {Transform Train and Test\\(Training-Fitted Scaler/Encoder)};
+\node[box] (compare) at (3.5,4.28) {Comparative Model Development};
 
 \draw[arrow] (raw) -- (inspect);
 \draw[arrow] (inspect) -- (clean);
@@ -142,30 +150,35 @@ ode[box, below=0.6cm of compare] (comparison) {Model Performance Comparison};
 \draw[arrow] (fitpre) -- (transform);
 \draw[arrow] (transform) -- (compare);
 
-% Experimental branches (right of compare)
-\node[smallbox, right=2.0cm of compare, yshift=0.8cm, fill=orange!10] (smote) {SMOTENC Experiments};
-\node[smallbox, right=2.0cm of compare, yshift=-0.8cm, fill=purple!10] (optuna) {Optuna Hyperparameter Optimization};
-\draw[arrow] (compare) -- (smote);
-\draw[arrow] (compare) -- (optuna);
+% Experimental branches
+\node[branch] (smote) at (1.25,3.15) {SMOTENC\\Experiments};
+\node[branch] (optuna) at (5.75,3.15) {Optuna Hyperparameter\\Optimization};
+\node[box] (comparison) at (3.5,2.10) {Model Performance\\Comparison};
 
-% Primary final model branch (below compare, left)
-\node[box, below=1.2cm of compare, fill=cyan!10] (tuned) {Tuned XGBoost\\(Primary Final Model)};
-\node[box, below=0.5cm of tuned] (eval) {Independent Test Evaluation};
-\node[box, below=0.5cm of eval, fill=gray!10] (shap) {SHAP Explainability};
-\draw[arrow] (comparison) -- (tuned);
+\draw[arrow] (compare.south west) -- (smote.north);
+\draw[arrow] (compare.south east) -- (optuna.north);
+\draw[arrow] (smote.south east) |- (comparison.west);
+\draw[arrow] (optuna.south west) |- (comparison.east);
+
+% Primary individual-model branch
+\node[branch] (tuned) at (1.25,1.05) {Tuned XGBoost\\(Primary Final Model)};
+\node[branch] (eval) at (1.25,-0.02) {Independent Test\\Evaluation};
+\node[branch] (shap) at (1.25,-1.09) {SHAP Explainability};
+\draw[arrow] (comparison.south west) -- (tuned.north);
 \draw[arrow] (tuned) -- (eval);
 \draw[arrow] (eval) -- (shap);
 
-% Stacking branch (right, aligned with compare -> tuned)
-\node[smallbox, right=2.8cm of compare, yshift=-2.2cm, fill=red!10] (base) {Base-Level OOF Predictions\\(XGBoost + CatBoost + MLP\\5-Fold Cross-Validation)};
-\node[box, below=0.5cm of base] (xmeta) {$X_{\text{meta\_train}}$};
-\node[box, below=0.5cm of xmeta, fill=red!15] (cross) {Meta-Level Cross-Fitting\\(5-Fold Logistic Regression)};
-\node[box, below=0.5cm of cross] (metaoof) {Meta-OOF Probabilities};
-\node[box, below=0.5cm of metaoof] (thresh) {Threshold Optimization};
-\node[box, below=0.5cm of thresh, fill=blue!15] (final) {Final Logistic Regression\\Fitted on Full $X_{\text{meta\_train}}$};
-\node[box, below=0.5cm of final] (xmetatest) {$X_{\text{meta\_test}}$};
-\node[box, below=0.5cm of xmetatest] (eval2) {Independent Test Evaluation};
+% Stacking branch
+\node[stack] (base) at (5.75,1.05) {Base-Level OOF Predictions\\(XGBoost + CatBoost + MLP\\5-Fold Cross-Validation)};
+\node[stack] (xmeta) at (5.75,-0.15) {$X_{\text{meta\_train}}$};
+\node[stack] (cross) at (5.75,-1.35) {Meta-Level Cross-Fitting\\(5-Fold Logistic Regression)};
+\node[stack] (metaoof) at (5.75,-2.55) {Meta-OOF Probabilities};
+\node[stack] (thresh) at (5.75,-3.65) {Threshold Optimization};
+\node[stack] (final) at (5.75,-4.82) {Final Logistic Regression\\Fitted on Full $X_{\text{meta\_train}}$};
+\node[stack] (xmetatest) at (5.75,-5.98) {$X_{\text{meta\_test}}$};
+\node[stack] (eval2) at (5.75,-7.08) {Independent Test Evaluation};
 
+\draw[arrow] (comparison.south east) -- (base.north);
 \draw[arrow] (base) -- (xmeta);
 \draw[arrow] (xmeta) -- (cross);
 \draw[arrow] (cross) -- (metaoof);
@@ -173,11 +186,11 @@ ode[box, below=0.6cm of compare] (comparison) {Model Performance Comparison};
 \draw[arrow] (thresh) -- (final);
 \draw[arrow] (final) -- (xmetatest);
 \draw[arrow] (xmetatest) -- (eval2);
-\draw[arrow] (comparison.east) -- ++(0.8cm,0) |- (base.west);
+
 \end{tikzpicture}
 \caption{Complete workflow of the proposed explainable diabetes risk-prediction framework: dataset inspection, deterministic data-quality cleaning, stratified split, test-set isolation, training-only learned preprocessing, comparative model development (with SMOTENC and Optuna branches), base-level OOF stacking with meta-level cross-fitting, meta-OOF threshold selection, final Logistic Regression fit on full $X_{\text{meta\_train}}$, independent test evaluation, and SHAP explainability.}
 \label{fig:workflow}
-\end{figure*}
+\end{figure}
 
 \subsection{Dataset Preparation and Data Quality Assessment}
 
@@ -237,8 +250,8 @@ Models are compared using accuracy, precision, recall, F1-score, ROC-AUC, and PR
 
 In addition to evaluating individual models, the study investigates whether predictions from different learning algorithms can be combined through stacking.
 
-\textbf{Note:} The Level-0 stacking MLP uses \texttt{hidden\_layer\_sizes=(128, 64)} with \texttt{early\_stopping=False}, which is a separate configuration from the standalone tuned MLP \texttt{(128,)}, used in the individual model comparison.
-The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\texttt{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \texttt{X\_meta\_train}, applied to the untouched test meta-features (\texttt{X\_meta\_test}), and evaluated once on the independent test set.
+\noindent\textbf{Note:} The Level-0 stacking MLP uses \textnormal{hidden\_layer\_sizes=(128, 64)} with \textnormal{early\_stopping=False}, which is a separate configuration from the standalone tuned MLP \textnormal{(128,)}, used in the individual model comparison.
+The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\textnormal{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \textnormal{X\_meta\_train}, applied to the untouched test meta-features (\textnormal{X\_meta\_test}), and evaluated once on the independent test set.
 
 The important aspect of this process is the use of out-of-fold (OOF) predictions. Instead of generating predictions for a training observation using a model that has already seen that observation during training, the training data are divided into folds. Each observation receives a prediction from a model that was trained without that observation.
 
@@ -300,8 +313,6 @@ The explainability analysis is performed on the final tuned XGBoost model. Two l
 
 The global SHAP analysis calculates the mean absolute SHAP value for each feature. This provides a ranking of the features according to their average contribution to the model's predictions.
 
-
-
 The results indicate that HbA1c level and blood glucose level are the dominant contributors to the predictions of the selected model. Age and BMI also provide substantial contributions, although their average effects are smaller than those of the two glucose-related variables.
 
 This interpretation complements the model's built-in feature importance rather than replacing it. The built-in XGBoost importance identifies influential features from the tree model, whereas SHAP provides a contribution-based interpretation of how features affect model output.
@@ -325,10 +336,12 @@ The results indicate that the differences between the strongest models are relat
 Hyperparameter optimization substantially changed the operating point of XGBoost. Baseline XGBoost obtained F1-score 0.637224, precision 0.492363, and recall 0.902861, whereas tuned XGBoost obtained F1-score 0.810038, precision 0.975651, and recall 0.692491.
 
 
-\begin{table}[htbp]
+\begin{table}[!htbp]
 \caption{Final Verified Hyperparameter Configurations}
 \centering
-\begin{tabular}{p{2.8cm} p{5.2cm}}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}L{1.95cm}L{5.65cm}@{}}
 \toprule
 \textbf{Model} & \textbf{Hyperparameters} \\
 \midrule
@@ -338,6 +351,7 @@ Hyperparameter optimization substantially changed the operating point of XGBoost
 \bottomrule
 \end{tabular}
 \end{table}
+\FloatBarrier
 
 Thus, tuning reduced false-positive behavior and produced a more balanced precision-recall trade-off, illustrating why accuracy or recall alone is insufficient for this imbalanced problem.
 
@@ -404,11 +418,12 @@ with:
 
 The selected threshold was then fixed before evaluation on the untouched test data. This procedure provides an important methodological advantage. The test labels were not used to select the threshold, which preserves the independence of the final test evaluation.
 
-\begin{table*}[t]
+\begin{table}[!htbp]
 \caption{Performance Comparison of Evaluated Models}
 \centering
-\small
-\begin{tabular}{lcccccc}
+\scriptsize
+\setlength{\tabcolsep}{1.35pt}
+\begin{tabular}{@{}L{1.65cm}*{6}{C{0.95cm}}@{}}
 \toprule
 Model & Accuracy & Precision & Recall & F1 & ROC-AUC & PR-AUC \\
 \midrule
@@ -424,11 +439,12 @@ TabNet & 0.970983 & 0.996510 & 0.673349 & 0.803659 & 0.974507 & 0.873419 \\
 MLP + SMOTENC & 0.948783 & 0.688143 & 0.757449 & 0.721135 & 0.968909 & 0.855925 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
+\FloatBarrier
 
-\begin{figure}[t]
+\begin{figure}[!b]
     \centering
-    \includegraphics[width=\columnwidth]{pr_curves_comparative.png}
+    \includegraphics[width=0.90\columnwidth]{pr_curves_comparative.png}
     \caption{Held-out test Precision-Recall (PR) curves for the evaluated models. The plot axes are magnified to the region of interest (Recall $\ge$ 0.55, Precision $\ge$ 0.45) to distinctly visualize the performance divergence between models, as standard axes render the differences imperceptible.}
     \label{fig:pr_curves}
 \end{figure}
@@ -437,17 +453,19 @@ MLP + SMOTENC & 0.948783 & 0.688143 & 0.757449 & 0.721135 & 0.968909 & 0.855925 
 
 The final tuned XGBoost model was analyzed using SHAP to determine which features contributed most strongly to the model's predictions.
 
-\begin{figure}[t]
+\begin{figure}[!t]
     \centering
-    \includegraphics[width=\columnwidth]{shap_feature_importance.png}
+    \includegraphics[width=0.90\columnwidth]{shap_feature_importance.png}
     \caption{Global SHAP feature importance for the final tuned XGBoost model.}
     \label{fig:shap_importance}
 \end{figure}
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \caption{SHAP Feature Importance}
 \centering
-\begin{tabular}{lc}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\begin{tabular}{@{}L{4.25cm}C{1.65cm}@{}}
 \toprule
 Feature & Mean Absolute SHAP \\
 \midrule
