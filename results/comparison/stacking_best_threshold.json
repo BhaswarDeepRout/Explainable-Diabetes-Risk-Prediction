@@ -1,5 +1,1 @@
-{
-    "best_threshold": 0.6599999999999997,
-    "selection_metric": "f1",
-    "selection_data": "OOF training predictions"
-}
+{"selected_threshold": 0.66, "meta_oof_f1": 0.8135360302327579, "method": "cross_fitted_meta_oo_f"}

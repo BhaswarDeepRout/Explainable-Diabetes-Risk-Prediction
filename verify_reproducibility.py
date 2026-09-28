@@ -11,7 +11,7 @@ import json
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from utils import print_metrics
+from src.utils import print_metrics
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
     f1_score, roc_auc_score, average_precision_score
@@ -33,8 +33,8 @@ def verify_metrics_consistency():
         df = pd.read_csv(model_comparison)
         for _, row in df.iterrows():
             # Validate mathematical bounds
-            assert 0 <= row['Accuracy'] <= 1.0, f"Invalid metrics for {row['Model']}"
-            assert 0 <= row['ROC-AUC'] <= 1.0, f"Invalid metrics for {row['Model']}"
+            assert 0 <= row['accuracy'] <= 1.0, f"Invalid metrics for {row['Model']}"
+            assert 0 <= row['roc_auc'] <= 1.0, f"Invalid metrics for {row['Model']}"
         print(f"Verified bounds for {len(df)} models in model_comparison.csv.")
 
 def verify_hyperparameter_alignment():
