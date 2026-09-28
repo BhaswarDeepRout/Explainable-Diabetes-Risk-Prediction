@@ -351,7 +351,7 @@ Models are compared using accuracy, precision, recall, F1-score, ROC-AUC, and PR
 
 In addition to evaluating individual models, the study investigates whether predictions from different learning algorithms can be combined through stacking.
 
-\textbfNote:} The Level-0 stacking MLP uses 				\textbfhidden_layer_sizes=(128, 64)} with 				\textbfearly_stopping=False}, which is a separate configuration from the standalone tuned MLP 				\textbf(128,)} used in the individual model comparison.
+	extbf{Note:} The Level-0 stacking MLP uses 	exttt{hidden\_layer\_sizes=(128, 64)} with 	exttt{early\_stopping=False}, which is a separate configuration from the standalone tuned MLP 	exttt{(128,)}, used in the individual model comparison.
 The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\t		\textbfX\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \t		\textbfX\_meta\_train}, applied to the untouched test meta-features (\t		\textbfX\_meta\_test}), and evaluated once on the independent test set.
 
 The important aspect of this process is the use of out-of-fold (OOF) predictions. Instead of generating predictions for a training observation using a model that has already seen that observation during training, the training data are divided into folds. Each observation receives a prediction from a model that was trained without that observation.
@@ -444,7 +444,7 @@ Hyperparameter optimization substantially changed the operating point of XGBoost
 \centering
 \begin{tabular}{p{2.8cm} p{5.2cm}}
 \toprule
-\textbfModel} & \textbfHyperparameters} \\
+\	extbf{Model} & \	extbf{Hyperparameters} \\
 \midrule
 \textbfXGBoost Tuned} & n\_estimators: 697, max\_depth: 6, learning\_rate: 0.041, subsample: 0.601, colsample\_bytree: 0.754, gamma: 2.414 \\
 \textbfCatBoost Tuned} & iterations: 665, depth: 6, learning\_rate: 0.022, l2\_leaf\_reg: 10.995, bagging\_temperature: 6.618 \\
@@ -497,6 +497,8 @@ The stacking framework generated out-of-fold predictions at the base level and u
 The stacking model achieved slightly higher recall than tuned XGBoost. However, its precision was lower, and its F1-score and ROC-AUC were marginally below those of the tuned XGBoost model.
 
 Therefore, stacking did not provide a sufficient overall improvement to replace tuned XGBoost as the primary final model. Nevertheless, the ensemble experiment is valuable because it demonstrates that the predictions of heterogeneous learning algorithms can be combined without introducing test-set information into the threshold-selection process.
+
+The final stacking metrics are: Accuracy = 0.9699, Precision = 0.9228, Recall = 0.7193, F1-score = 0.8085, ROC-AUC = 0.9778, and PR-AUC = 0.8848.
 
 \subsection{Leakage-Free Threshold Optimization}
 
