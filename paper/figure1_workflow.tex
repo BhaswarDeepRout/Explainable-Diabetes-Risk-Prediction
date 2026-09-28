@@ -1,0 +1,34 @@
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[font=\small, node distance=1.2cm,
+    box/.style={rectangle, draw, rounded corners, fill=blue!8, minimum width=2.6cm, minimum height=0.6cm, align=center},
+    arrow/.style={->, >=stealth, thick},
+    smallbox/.style={rectangle, draw, rounded corners, fill=green!8, minimum width=2.4cm, minimum height=0.5cm, align=center}]
+% Top flow
+\node[box] (raw) {Raw Dataset};
+\node[box, below=0.8cm of raw] (clean) {Data Quality\Assessment};
+\node[box, below=0.8cm of clean] (split) {Stratified\Train/Test Split};
+\node[box, below=0.8cm of split, fill=yellow!10] (preproc) {Preprocessing\Fit on Train};
+\node[box, below=0.8cm of preproc] (transform) {Transform\Train/Test};
+\node[box, below=0.8cm of transform] (compare) {Model Comparison};
+\node[box, below=0.8cm of compare, fill=orange!10] (base) {Base-Level OOF\(5-fold CV)};
+\node[box, below=0.8cm of base] (meta) {X\_meta\_train};
+\node[box, below=0.8cm of meta, fill=red!10] (cross) {Meta-Level\Cross-Fitting};
+\node[box, below=0.8cm of cross] (threshold) {Threshold\Optimization};
+\node[box, below=0.8cm of threshold, fill=blue!15] (final) {Final LR\Full X\_meta};
+\node[box, below=0.8cm of final] (test) {Independent\Test Evaluation};
+\draw[arrow] (raw) -- (clean);
+\draw[arrow] (clean) -- (split);
+\draw[arrow] (split) -- (preproc);
+\draw[arrow] (preproc) -- (transform);
+\draw[arrow] (transform) -- (compare);
+\draw[arrow] (compare) -- (base);
+\draw[arrow] (base) -- (meta);
+\draw[arrow] (meta) -- (cross);
+\draw[arrow] (cross) -- (threshold);
+\draw[arrow] (threshold) -- (final);
+\draw[arrow] (final) -- (test);
+\end{tikzpicture}
+\caption{Corrected pipeline: training-only preprocessing, base-level OOF, meta-level cross-fitting, leakage-free threshold, final model, independent test.}
+\label{fig:workflow}
+\end{figure}

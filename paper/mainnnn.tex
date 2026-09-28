@@ -106,7 +106,7 @@ Overall, the literature review indicated that ensemble learning, class balancing
 
 The proposed study develops an explainable machine learning framework for diabetes risk prediction using structured health-related attributes. The main objective is not only to obtain a strong predictive model but also to examine how the model arrives at its predictions. This is particularly important in a healthcare setting, where a prediction without an interpretable explanation may be difficult to evaluate or trust.
 
-The complete methodology consists of several sequential stages. The process begins with dataset inspection and data-quality verification, followed by preprocessing and feature transformation. The processed dataset is then divided into training and testing subsets while maintaining the class distribution. Several machine learning models are trained to establish baseline performance. Additional experiments are performed using SMOTE to investigate the effect of class balancing, while hyperparameter tuning is applied to selected models to improve their predictive performance.
+The complete methodology consists of several sequential stages. The process begins with dataset inspection and data-quality verification (duplicate/conflict removal before split; learned transformations after split), followed by stratified train/test split, then preprocessing fitted on training only and applied to both partitions while maintaining the class distribution. Several machine learning models are trained to establish baseline performance. Additional experiments are performed using SMOTENC to investigate the effect of class balancing, while hyperparameter tuning is applied to selected models to improve their predictive performance.
 
 Following the individual model experiments, an out-of-fold stacking approach is developed using predictions from multiple base learners. The stacking model produces probability estimates rather than directly relying on a fixed classification boundary. A classification threshold is subsequently optimized using only the out-of-fold training predictions. This prevents information from the untouched test set from influencing the threshold-selection process.
 
@@ -193,7 +193,7 @@ The workflow proceeds from data validation and preprocessing to feature transfor
 % ------------------------------------------------
 
 \node[smallbox, below left=12mm and 20mm of models] (smote) {
-    SMOTE Experiments\\
+    SMOTENC Experiments\\
     XGBoost, CatBoost, MLP
 };
 
@@ -284,7 +284,7 @@ The workflow proceeds from data validation and preprocessing to feature transfor
 \draw[arrow] (shap) -- (findings);
 
 % ------------------------------------------------
-% OOF stacking branch
+\input{figure1_workflow.tex}\n% OOF stacking branch
 % ------------------------------------------------
 
 \draw[arrow] (comparison) -- (oof);
@@ -340,9 +340,9 @@ More importantly, the test subset is kept separate from model development and th
 An additional train/test overlap audit was performed. The analysis found zero identical feature patterns between the training and testing sets, providing an additional check against unintended data overlap.
 \subsection{Individual Machine Learning Models}
 
-Four heterogeneous algorithms are evaluated: XGBoost and CatBoost as gradient-boosted tree learners, MLP as a neural-network alternative, and TabNet as a deep-learning architecture designed for tabular data. Baseline and tuned configurations are compared where applicable, while SMOTE versions are evaluated separately. This design provides a consistent comparison of tree ensembles and neural approaches rather than relying on a single model family.
+Four heterogeneous algorithms are evaluated: XGBoost and CatBoost as gradient-boosted tree learners, MLP as a neural-network alternative, and TabNet as a deep-learning architecture designed for tabular data. Baseline and tuned configurations are compared where applicable, while SMOTENC versions are evaluated separately. This design provides a consistent comparison of tree ensembles and neural approaches rather than relying on a single model family.
 
-\subsection{SMOTE-Based Experiments}
+\subsection{SMOTENC-Based Experiments}
 
 Because only 8.74\% of the observations belong to the positive class, Synthetic Minority Over-sampling Technique (SMOTE) is investigated as a separate experimental condition.
 
@@ -350,7 +350,7 @@ SMOTE generates synthetic minority-class observations based on existing minority
 
 In this study, SMOTE is evaluated with XGBoost, CatBoost, and MLP. The purpose is to determine whether increasing the representation of the minority class produces a useful improvement in diabetes detection.
 
-An important aspect of the proposed methodology is that SMOTE is treated as an experiment rather than an assumed improvement. The resulting models are compared against their corresponding non-SMOTE configurations using the same evaluation criteria. This allows the study to determine whether balancing the training data actually improves the final predictive trade-off between precision and recall.
+An important aspect of the proposed methodology is that SMOTE is treated as an experiment rather than an assumed improvement. The resulting models are compared against their corresponding non-SMOTENC configurations using the same evaluation criteria. This allows the study to determine whether balancing the training data actually improves the final predictive trade-off between precision and recall.
 
 \subsection{Hyperparameter Optimization}
 
@@ -370,7 +370,8 @@ Models are compared using accuracy, precision, recall, F1-score, ROC-AUC, and PR
 
 In addition to evaluating individual models, the study investigates whether predictions from different learning algorithms can be combined through stacking.
 
-The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\texttt{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \texttt{X\_meta\_train}, applied to the untouched test meta-features (\texttt{X\_meta\_test}), and evaluated once on the independent test set.
+textbf{Note:} The Level-0 stacking MLP uses 				exttt{hidden_layer_sizes=(128, 64)} with 				exttt{early_stopping=False}, which is a separate configuration from the standalone tuned MLP 				exttt{(128,)} used in the individual model comparison.
+The stacking framework uses predictions from CatBoost, XGBoost, and MLP as base-level meta-features. Each base learner is evaluated through 5-fold stratified cross-validation to generate genuine out-of-fold predictions for every training observation. These base-level OOF predictions form the meta-level training set (\t		exttt{X\_meta\_train}). The Logistic Regression meta-learner is then cross-fitted across the meta-level to obtain unbiased meta-OOF probabilities for threshold selection: for each meta-fold, Logistic Regression is fit on the remaining meta-training folds and predicts the held-out fold. After concatenating these held-out meta predictions, the classification threshold is selected exclusively from this meta-OOF training-derived probability set, ensuring no test-set information influences the choice. Once the threshold is frozen, a final Logistic Regression meta-model is fitted on the full \t		exttt{X\_meta\_train}, applied to the untouched test meta-features (\t		exttt{X\_meta\_test}), and evaluated once on the independent test set.
 
 The important aspect of this process is the use of out-of-fold (OOF) predictions. Instead of generating predictions for a training observation using a model that has already seen that observation during training, the training data are divided into folds. Each observation receives a prediction from a model that was trained without that observation.
 
@@ -484,9 +485,9 @@ The small difference supports tuned XGBoost as the primary model under the selec
 
 SMOTE was investigated to determine whether synthetic minority-class generation could improve the detection of diabetes cases.
 
-For XGBoost, the SMOTE configuration produced an F1-score of 0.804295, compared with 0.810038 for tuned XGBoost. CatBoost with SMOTE obtained an F1-score of 0.806553, compared with 0.809773 for tuned CatBoost.
+For XGBoost, the SMOTENC configuration produced an F1-score of 0.804295, compared with 0.810038 for tuned XGBoost. CatBoost with SMOTENC obtained an F1-score of 0.806553, compared with 0.809773 for tuned CatBoost.
 
-The MLP configuration showed a different behavior. MLP with SMOTE produced a recall of 0.757449, which was higher than the recall of the baseline and tuned MLP configurations. However, this improvement was accompanied by a considerable reduction in precision to 0.688143, resulting in an F1-score of 0.721135.
+The MLP configuration showed a different behavior. MLP with SMOTENC produced a recall of 0.757449, which was higher than the recall of the baseline and tuned MLP configurations. However, this improvement was accompanied by a considerable reduction in precision to 0.688143, resulting in an F1-score of 0.721135.
 
 These findings indicate that SMOTE did not provide a consistent improvement across the evaluated algorithms. In particular, increasing the representation of the minority class can improve sensitivity while simultaneously increasing false-positive predictions.
 
@@ -511,8 +512,6 @@ The low false-positive count explains the high precision, whereas the false-nega
 A stacking experiment was conducted to determine whether predictions from XGBoost, CatBoost, and MLP could be combined to produce a stronger predictive representation.
 
 The stacking framework generated out-of-fold predictions at the base level and used cross-fitted meta-level predictions to train and validate the meta-model for threshold selection. The final meta-model was then fitted on all meta-training data and evaluated on the independent test set.
-
-The stacking model produced accuracy 0.9711, precision 0.9554, recall 0.7020, F1-score 0.8093, ROC-AUC 0.9775, and PR-AUC 0.8853.
 
 The stacking model achieved slightly higher recall than tuned XGBoost. However, its precision was lower, and its F1-score and ROC-AUC were marginally below those of the tuned XGBoost model.
 

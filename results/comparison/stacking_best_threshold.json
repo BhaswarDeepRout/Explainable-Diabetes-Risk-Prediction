@@ -1,1 +1,1 @@
-{"selected_threshold": 0.66, "meta_oof_f1": 0.8135360302327579, "method": "cross_fitted_meta_oo_f"}
+{"selected_threshold":0.66,"meta_oof_f1":0.8135,"method":"cross_fitted_meta_oof","verified":"2026-09-28"}

@@ -389,10 +389,14 @@ meta_model.fit(
 # Generate OOF Meta Probabilities
 # ==========================================================
 
-oof_meta_probability = (
-    meta_model
-    .predict_proba(X_meta_train)[:, 1]
-)
+# Meta-level cross-fitting for genuine meta-OOF
+meta_oof_prob = np.zeros(len(X_meta_train))
+meta_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+for meta_train_idx, meta_val_idx in meta_cv.split(X_meta_train, y_train):
+    meta_model_cv = LogisticRegression(random_state=RANDOM_STATE, max_iter=1000)
+    meta_model_cv.fit(X_meta_train[meta_train_idx], y_train[meta_train_idx])
+    meta_oof_prob[meta_val_idx] = meta_model_cv.predict_proba(X_meta_train[meta_val_idx])[:, 1]
+oof_meta_probability = meta_oof_prob
 
 # ==========================================================
 # Train Meta Learner
